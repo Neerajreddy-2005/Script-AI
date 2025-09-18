@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SessionContext } from "../App";
+import PlatformAIAgents from "@/components/PlatformAIAgents";
 
 interface GeneratedScript {
   title: string;
@@ -30,6 +31,10 @@ const DashboardPage = () => {
   const [subscription, setSubscription] = useState("pro"); // basic, pro, premium
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [webhookUrl, setWebhookUrl] = useState(
+    import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://your-n8n-instance.n8n.cloud/webhook/generate-content'
+  );
+  const [selectedAIAgent, setSelectedAIAgent] = useState('YouTube');
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -90,7 +95,7 @@ const DashboardPage = () => {
     }
   };
 
-  const generateScript = () => {
+  const generateScript = async (agentPlatform?: string) => {
     if (!topic) {
       toast.error("Please enter a topic");
       return;
@@ -98,18 +103,71 @@ const DashboardPage = () => {
 
     setIsGenerating(true);
     
-    setTimeout(() => {
+    try {
+      // Use the webhook URL from state
+      const n8nWebhookUrl = webhookUrl;
+      const targetPlatform = agentPlatform || platform;
+      
+      console.log('🚀 Sending request to n8n webhook:', n8nWebhookUrl);
+      console.log('📝 Request payload:', { topic, platform: targetPlatform, tone, length, subscription });
+      console.log('🤖 Using AI Agent for:', targetPlatform);
+      
+      const response = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topic,
+          platform: targetPlatform,
+          tone,
+          length,
+          subscription
+        })
+      });
+
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ n8n response:', result);
+      
+      if (result.success) {
+        setGeneratedScript(result.data);
+        toast.success(`🎉 Script generated successfully with ${targetPlatform} AI Agent!`);
+      } else {
+        toast.error(result.error || "Failed to generate script");
+      }
+    } catch (error) {
+      console.error('❌ Error generating script:', error);
+      toast.error(`Failed to generate script: ${error.message}`);
+      
+      // Fallback to mock data if n8n is not available
+      console.log('🔄 Using fallback mock data...');
       const exampleScript: GeneratedScript = {
-        title: `${topic} - Script for ${platform}`,
+        title: `${topic} - Script for ${agentPlatform || platform}`,
         introduction: `[${tone.toUpperCase()}] Hook your audience with a strong intro Hello everyone! Today we're diving deep into ${topic}. This is something I'm really passionate about, and I can't wait to share my insights with you.`,
         mainContent: `[${tone.toUpperCase()}] Deliver your key points clearly and concisely Let's talk about the three most important aspects of ${topic}: 1. The fundamentals that everyone should know 2. Common misconceptions that might be holding you back 3. Advanced strategies that can take your understanding to the next level`,
         conclusion: `[${tone.toUpperCase()}] End with a call-to-action Thanks for staying with me through this exploration of ${topic}. If you found this valuable, make sure to like and subscribe for more content like this!`,
       };
       
       setGeneratedScript(exampleScript);
+      toast.success("Script generated successfully! (Using fallback mode)");
+    } finally {
       setIsGenerating(false);
-      toast.success("Script generated successfully!");
-    }, 2000);
+    }
+  };
+
+  const handleAIAgentSelect = (platform: string) => {
+    setSelectedAIAgent(platform);
+    setPlatform(platform);
+  };
+
+  const handleAIAgentGenerate = (platform: string) => {
+    generateScript(platform);
   };
 
   const generateThumbnail = () => {
@@ -220,10 +278,75 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+          <div className="flex items-start">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="font-medium text-yellow-800 mb-2">n8n Webhook Configuration</h3>
+              <p className="text-sm text-yellow-700 mb-3">
+                {import.meta.env.VITE_N8N_WEBHOOK_URL 
+                  ? "Using webhook URL from environment variables (.env file)"
+                  : "Paste your n8n webhook URL below to test the AI content generation:"
+                }
+              </p>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={webhookUrl}
+                  onChange={(e) => setWebhookUrl(e.target.value)}
+                  placeholder="https://your-n8n-instance.n8n.cloud/webhook/generate-content"
+                  className={`flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:border-transparent ${
+                    import.meta.env.VITE_N8N_WEBHOOK_URL 
+                      ? 'border-green-300 bg-green-50 focus:ring-green-500' 
+                      : 'border-yellow-300 focus:ring-yellow-500'
+                  }`}
+                  disabled={!!import.meta.env.VITE_N8N_WEBHOOK_URL}
+                />
+                <button
+                  onClick={() => {
+                    if (webhookUrl.includes('n8n.cloud') || webhookUrl.includes('webhook')) {
+                      toast.success("Webhook URL updated!");
+                    } else {
+                      toast.error("Please enter a valid n8n webhook URL");
+                    }
+                  }}
+                  disabled={!!import.meta.env.VITE_N8N_WEBHOOK_URL}
+                  className={`px-4 py-2 text-white text-sm rounded-md transition-colors ${
+                    import.meta.env.VITE_N8N_WEBHOOK_URL
+                      ? 'bg-green-600 cursor-not-allowed'
+                      : 'bg-yellow-600 hover:bg-yellow-700'
+                  }`}
+                >
+                  {import.meta.env.VITE_N8N_WEBHOOK_URL ? 'From .env' : 'Update'}
+                </button>
+              </div>
+              <p className="text-xs text-yellow-600 mt-2">
+                {import.meta.env.VITE_N8N_WEBHOOK_URL 
+                  ? "🔒 Webhook URL is loaded from environment variables for security"
+                  : "💡 Get your webhook URL from the n8n workflow's Webhook Trigger node"
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="col-span-1 space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-scriptai-black mb-6">Create Your Script</h2>
+              
+              <PlatformAIAgents
+                selectedPlatform={selectedAIAgent}
+                onPlatformSelect={handleAIAgentSelect}
+                onGenerateWithAgent={handleAIAgentGenerate}
+                isGenerating={isGenerating}
+              />
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-scriptai-black mb-6">Script Parameters</h2>
               <div className="space-y-6">
                 <div>
                   <label htmlFor="topic" className="block text-sm font-medium text-scriptai-darkgray mb-2">
