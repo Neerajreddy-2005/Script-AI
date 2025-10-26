@@ -29,7 +29,7 @@ const DashboardPage = () => {
     setIsGenerating(true);
     
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
       
       console.log('🚀 Sending request to backend:', `${backendUrl}/api/generate-script`);
       console.log('📝 Request payload:', { topic, platform, tone, length });
