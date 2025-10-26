@@ -45,7 +45,7 @@ def create_script_prompt(topic, platform, tone, length):
     Please generate a complete script with the following structure:
     
     1. INTRODUCTION (Hook the audience)
-    2. MAIN CONTENT (Deliver key points)
+    2. MAIN CONTENT (Deliver key points in a point wise and well structured manner)
     3. CONCLUSION (Call to action)
     
     Format the response as JSON with the following structure:
