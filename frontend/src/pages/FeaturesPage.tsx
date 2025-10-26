@@ -122,17 +122,17 @@ const FeaturesPage = () => {
     },
     {
       title: "Dynamic Support Chatbot",
-      description: "Get assistance with tiered availability based on your subscription level.",
+      description: "Get assistance whenever you need it with our intelligent support chatbot.",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-scriptai-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
         </svg>
       ),
       details: [
-        "Basic: 6-hour support on weekdays",
-        "Pro: 12-hour support daily",
-        "Premium: 24/7 support",
-        "Intelligent query resolution and direct admin escalation"
+        "24/7 availability for all users",
+        "Intelligent query resolution",
+        "Direct admin escalation for complex issues",
+        "Multi-language support"
       ]
     },
     {
@@ -210,7 +210,7 @@ const FeaturesPage = () => {
           </p>
           
           <div className="flex justify-center">
-            <Link to="/register">
+            <Link to="/dashboard">
               <Button className="btn-primary text-base py-6 px-8 w-full sm:w-auto">
                 Get Started for Free
               </Button>

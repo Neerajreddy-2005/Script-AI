@@ -35,7 +35,7 @@ const HelpCenterPage = () => {
       {
         id: 'gs1',
         question: 'How do I create my first script?',
-        answer: 'To create your first script, log in to your account and navigate to the Dashboard. Click on the "New Script" button and follow the prompts to select your content type and enter your script details. Our AI will then generate a script based on your inputs.'
+        answer: 'To create your first script, navigate to the Dashboard. Enter your topic, select your platform and tone preferences, then click "Generate Script". Our AI will create a professional script based on your inputs.'
       },
       {
         id: 'gs2',
@@ -46,23 +46,6 @@ const HelpCenterPage = () => {
         id: 'gs3',
         question: 'How do I edit a generated script?',
         answer: 'After a script is generated, you can edit it directly in our editor. Simply click on any section of the script to make changes. You can also use our AI tools to regenerate specific sections if needed.'
-      }
-    ],
-    'subscription': [
-      {
-        id: 'sub1',
-        question: 'What subscription plans are available?',
-        answer: 'We offer a free tier with basic features and premium plans with advanced capabilities. Contact our support team for detailed information about our subscription options.'
-      },
-      {
-        id: 'sub2',
-        question: 'How do I upgrade or downgrade my subscription?',
-        answer: 'To change your subscription, go to your Account Settings and select the "Subscription" tab. From there, you can choose a different plan that better suits your needs.'
-      },
-      {
-        id: 'sub3',
-        question: 'Can I cancel my subscription at any time?',
-        answer: 'Yes, you can cancel your subscription at any time from your Account Settings. Your access will continue until the end of your current billing period.'
       }
     ],
     'technical': [
@@ -142,12 +125,6 @@ const HelpCenterPage = () => {
             className={`px-5 py-2 rounded-full font-medium transition-all ${activeCategory === 'getting-started' ? 'bg-scriptai-blue text-white' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
           >
             Getting Started
-          </button>
-          <button 
-            onClick={() => setActiveCategory('subscription')}
-            className={`px-5 py-2 rounded-full font-medium transition-all ${activeCategory === 'subscription' ? 'bg-scriptai-blue text-white' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
-          >
-            Subscription
           </button>
           <button 
             onClick={() => setActiveCategory('technical')}

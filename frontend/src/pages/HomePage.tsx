@@ -92,7 +92,7 @@ const HomePage = () => {
               Create professional scripts for videos, podcasts, and social media in seconds with our intuitive AI scriptwriter.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link to="/register">
+              <Link to="/dashboard">
                 <Button className="btn-primary text-base py-6 px-8 w-full sm:w-auto">
                   Start Creating
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">

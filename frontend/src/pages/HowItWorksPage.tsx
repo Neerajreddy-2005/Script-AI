@@ -44,13 +44,13 @@ const HowItWorksPage = () => {
     {
       number: "02",
       title: "Customize Script Options",
-      description: "Fine-tune your script by selecting additional options like thumbnail generation, voice output, or AI image suggestions.",
-      image: "https://images.unsplash.com/photo-1587691592099-24045742c181?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      details: [
-        "Enable premium features based on your subscription level",
-        "Preview available add-ons like thumbnail generation or voice output",
-        "Customize generation parameters for optimal results"
-      ]
+      description:         "Fine-tune your script by selecting additional options and customizing generation parameters.",
+        image: "https://images.unsplash.com/photo-1587691592099-24045742c181?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+        details: [
+          "Select your preferred tone and style",
+          "Choose the appropriate length for your content",
+          "Customize generation parameters for optimal results"
+        ]
     },
     {
       number: "03",

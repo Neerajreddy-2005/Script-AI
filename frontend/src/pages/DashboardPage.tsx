@@ -1,7 +1,6 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { SessionContext } from "../App";
 
 interface GeneratedScript {
   title: string;
@@ -12,7 +11,6 @@ interface GeneratedScript {
 
 
 const DashboardPage = () => {
-  const { user } = useContext(SessionContext);
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("YouTube");
   const [tone, setTone] = useState("Casual");
@@ -20,7 +18,6 @@ const DashboardPage = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
   const [selectedTab, setSelectedTab] = useState("editor");
-  const [subscription, setSubscription] = useState("pro"); // basic, pro, premium
 
 
   const generateScript = async () => {
@@ -105,30 +102,6 @@ const DashboardPage = () => {
           <p className="text-scriptai-darkgray mt-2">
             Create professional scripts for your content with our AI-powered tool.
           </p>
-        </div>
-
-        <div className="bg-white rounded-lg p-4 mb-8">
-          <div className="text-sm text-scriptai-darkgray mb-2">Demo Mode: Select Subscription Level</div>
-          <div className="flex space-x-2">
-            <button 
-              className={`px-4 py-1 rounded-md transition-colors ${subscription === 'basic' ? 'bg-scriptai-lightblue text-scriptai-blue' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
-              onClick={() => setSubscription('basic')}
-            >
-              Basic
-            </button>
-            <button 
-              className={`px-4 py-1 rounded-md transition-colors ${subscription === 'pro' ? 'bg-scriptai-lightblue text-scriptai-blue' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
-              onClick={() => setSubscription('pro')}
-            >
-              Pro
-            </button>
-            <button 
-              className={`px-4 py-1 rounded-md transition-colors ${subscription === 'premium' ? 'bg-scriptai-lightblue text-scriptai-blue' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
-              onClick={() => setSubscription('premium')}
-            >
-              Premium
-            </button>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -220,75 +193,6 @@ const DashboardPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
-                  </div>
-                </div>
-                
-                <div className={`rounded-lg p-4 ${subscription === 'premium' ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50 border border-gray-200'}`}>
-                  <div className="flex items-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className={`mr-2 ${subscription === 'premium' ? 'text-yellow-500' : 'text-gray-400'}`}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                    </svg>
-                    <span className={`text-sm font-medium ${subscription === 'premium' ? 'text-yellow-700' : 'text-gray-500'}`}>Premium Features</span>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <input
-                        id="voice-output"
-                        type="checkbox"
-                        className="w-4 h-4 text-scriptai-blue focus:ring-scriptai-blue/30 border-gray-300 rounded"
-                        disabled={subscription !== 'premium'}
-                      />
-                      <label htmlFor="voice-output" className={`ml-2 text-sm ${subscription === 'premium' ? 'text-gray-700' : 'text-gray-400'}`}>
-                        Voice Output
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <input
-                        id="enhanced-content"
-                        type="checkbox"
-                        className="w-4 h-4 text-scriptai-blue focus:ring-scriptai-blue/30 border-gray-300 rounded"
-                        defaultChecked
-                        disabled={subscription !== 'premium'}
-                      />
-                      <label htmlFor="enhanced-content" className={`ml-2 text-sm ${subscription === 'premium' ? 'text-gray-700' : 'text-gray-400'}`}>
-                        Enhanced AI Content
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <input
-                        id="image-suggestions"
-                        type="checkbox"
-                        className="w-4 h-4 text-scriptai-blue focus:ring-scriptai-blue/30 border-gray-300 rounded"
-                        disabled={subscription !== 'premium'}
-                      />
-                      <label htmlFor="image-suggestions" className={`ml-2 text-sm ${subscription === 'premium' ? 'text-gray-700' : 'text-gray-400'}`}>
-                        AI Image Suggestions
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <input
-                        id="generate-thumbnail"
-                        type="checkbox"
-                        className="w-4 h-4 text-scriptai-blue focus:ring-scriptai-blue/30 border-gray-300 rounded"
-                        defaultChecked
-                        disabled={subscription === 'basic'}
-                      />
-                      <label htmlFor="generate-thumbnail" className={`ml-2 text-sm ${subscription === 'basic' ? 'text-gray-400' : 'text-gray-700'}`}>
-                        Generate Thumbnail
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 text-xs text-scriptai-darkgray">
-                    {subscription === 'premium' 
-                      ? 'Enhanced AI generates more detailed, SEO-optimized content. Generate a thumbnail for your content.'
-                      : subscription === 'pro'
-                      ? 'Upgrade to Premium to access Voice Output and AI Image Suggestions.'
-                      : 'Upgrade to Pro or Premium to unlock these features.'}
                   </div>
                 </div>
 
