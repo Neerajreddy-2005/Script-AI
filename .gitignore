@@ -52,4 +52,10 @@ build/
 *.secret
 
 
+# Hide backend workflow JSON (n8n exports/configs)
+backend/Script-AI Backend.json
+backend/*.workflow.json
+backend/*.n8n.json
+backend/*.json
+
 
