@@ -22,24 +22,6 @@
     },
     {
       "parameters": {
-        "path": "api/health",
-        "responseMode": "lastNode",
-        "options": {
-          "responseContentType": "application/json"
-        }
-      },
-      "id": "fdf4e6af-e827-4391-8d6a-26bc496157ff",
-      "name": "Receive /api/health",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [
-        -624,
-        288
-      ],
-      "webhookId": "464ff61e-dc77-4a88-8aa5-1b06ad755b9b"
-    },
-    {
-      "parameters": {
         "functionCode": "// Get data from the webhook body\nconst data = $input.first().json.body;\n\nconst topic = data.topic || '';\nconst platform = data.platform || 'YouTube';\nconst tone = data.tone || 'Casual';\nconst length = data.length || 'Short (2-3 min)';\n\nif (!topic) {\n  return [{ json: { success: false, error: 'Topic is required' } }];\n}\n\nconst prompt = `Create a professional video script for the topic: \"${topic}\"\n\nRequirements:\n- Platform: ${platform}\n- Tone: ${tone}\n- Length: ${length}\n\nPlease generate a complete script with the following structure:\n\n1. INTRODUCTION (Hook the audience)\n2. MAIN CONTENT (Deliver key points in a point wise and well structured manner)\n3. CONCLUSION (Call to action)\n\nFormat the response as JSON with the following structure:\n{\n  \"title\": \"Script title here\",\n  \"introduction\": {\"script\": \"Introduction content here\"},\n  \"mainContent\": {\"script\": \"Main content here\"},\n  \"conclusion\": {\"script\": \"Conclusion content here\"}\n}\n\nMake sure the script is:\n- Optimized for ${platform} platform\n- In a ${tone} tone\n- Approximately ${length} duration\n- Engaging and professional\n- Includes platform-specific elements (e.g., for YouTube: call to subscribe, for TikTok: engaging hooks)\n\nReturn ONLY valid JSON without any markdown formatting or code blocks.`;\n\nreturn [{ json: { prompt, topic, platform, tone, length } }];"
       },
       "id": "14021e80-c399-4c16-a11e-9f2ba85c386f",
@@ -110,21 +92,6 @@
     },
     {
       "parameters": {
-        "options": {
-          "responseCode": 200
-        }
-      },
-      "id": "dec1ed97-b499-4797-833f-c5c5026cc9da",
-      "name": "Send /api/health Response",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        -320,
-        288
-      ]
-    },
-    {
-      "parameters": {
         "jsCode": "// Get the prompt from the previous node\nconst prompt = $('Create Prompt').first().json.prompt;\n\n// Build the complete API request body\nconst requestBody = {\n  model: \"openai/gpt-4o-mini\",\n  messages: [\n    {\n      role: \"user\",\n      content: prompt\n    }\n  ],\n  temperature: 0.7,\n  max_tokens: 2000\n};\n\n// Return the request body\nreturn [{ json: { requestBody } }];"
       },
       "type": "n8n-nodes-base.code",
@@ -183,17 +150,6 @@
         ]
       ]
     },
-    "Receive /api/health": {
-      "main": [
-        [
-          {
-            "node": "Send /api/health Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Build API Request": {
       "main": [
         [
@@ -210,7 +166,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "86250db5-df7d-47d0-ae77-7eaca33b1908",
+  "versionId": "7c483808-0ff9-4ec5-abe0-5a7ae6073254",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "102d3e97c2c8b80962d7cbf5cc11bb0ad27126635258dd413efbf996249e0e71"
