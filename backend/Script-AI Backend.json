@@ -77,6 +77,26 @@
     },
     {
       "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/clean-script",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\"payload\": $json} }}"
+      },
+      "id": "e3f0f3f1-6b7a-4e21-9c8a-0a0bclean0001",
+      "name": "Clean via Python Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        432,
+        -16
+      ]
+    },
+    {
+      "parameters": {
         "options": {
           "responseCode": 200
         }
@@ -140,6 +160,17 @@
       ]
     },
     "Parse and Format Response": {
+      "main": [
+        [
+          {
+            "node": "Clean via Python Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean via Python Service": {
       "main": [
         [
           {

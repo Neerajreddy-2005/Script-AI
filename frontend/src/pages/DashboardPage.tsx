@@ -286,19 +286,19 @@ const DashboardPage = () => {
                   <div className="space-y-6">
                     <div>
                       <h3 className="text-lg font-medium text-scriptai-blue mb-2">Introduction</h3>
-                      <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="p-4 bg-gray-50 rounded-lg" style={{ whiteSpace: 'pre-line' }}>
                         {generatedScript.introduction.script}
                       </div>
                     </div>
                     <div>
                       <h3 className="text-lg font-medium text-scriptai-blue mb-2">Main Content</h3>
-                      <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="p-4 bg-gray-50 rounded-lg" style={{ whiteSpace: 'pre-line' }}>
                         {generatedScript.mainContent.script}
                       </div>
                     </div>
                     <div>
                       <h3 className="text-lg font-medium text-scriptai-blue mb-2">Conclusion</h3>
-                      <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="p-4 bg-gray-50 rounded-lg" style={{ whiteSpace: 'pre-line' }}>
                         {generatedScript.conclusion.script}
                       </div>
                     </div>
@@ -307,7 +307,7 @@ const DashboardPage = () => {
                 ) : (
                   <div className="bg-gray-50 p-6 rounded-lg">
                     <h3 className="text-lg font-medium mb-4">Script Preview</h3>
-                    <div className="prose max-w-none">
+                    <div className="prose max-w-none" style={{ whiteSpace: 'pre-line' }}>
                       <p>{generatedScript.introduction.script.replace(/\[.*?\]/g, '')}</p>
                       <p>{generatedScript.mainContent.script.replace(/\[.*?\]/g, '')}</p>
                       <p>{generatedScript.conclusion.script.replace(/\[.*?\]/g, '')}</p>
