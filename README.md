@@ -1,8 +1,6 @@
 # Script‑AI
 
-If you want to see the project live: [Live Demo](https://scripai.netlify.app/)
-
-A lightweight tool to generate clean, platform‑ready content scripts and display them in a simple dashboard.
+A lightweight tool to generate clean, platform‑ready content scripts and display them in a simple dashboard. For Exploring the Website Click here[Live Demo](https://scripai.netlify.app/)
 
 ## Tech Stack
 - Frontend: React + TypeScript (Vite), TailwindCSS
