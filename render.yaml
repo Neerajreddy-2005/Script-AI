@@ -1,0 +1,50 @@
+# Render Blueprint: Render -> New -> Blueprint -> pick this repo.
+# Values marked `sync: false` are entered in the Render dashboard on first deploy (never committed).
+services:
+  - type: web
+    name: script-ai-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: FRONTEND_ORIGINS
+        sync: false # https://<site>.netlify.app
+      # LLM
+      - key: LLM_PROVIDER
+        value: openai_compatible
+      - key: LLM_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: LLM_MODEL
+        value: openai/gpt-4o-mini
+      - key: LLM_API_KEY
+        sync: false
+      # Embeddings: Gemini free tier (Ollama is not reachable from Render)
+      - key: EMBEDDING_PROVIDER
+        value: openai_compatible
+      - key: EMBEDDING_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai
+      - key: EMBEDDING_MODEL
+        value: gemini-embedding-001
+      - key: EMBEDDING_DIM
+        value: "768"
+      - key: EMBEDDING_SEND_DIMENSIONS
+        value: "true"
+      - key: EMBEDDING_API_KEY
+        sync: false
+      # Supabase
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: AUTH_DISABLED
+        value: "false"
+      # n8n (local, exposed through a tunnel). Leave both empty to deploy without emails.
+      - key: N8N_EVENTS_URL
+        sync: false
+      - key: N8N_SHARED_SECRET
+        sync: false

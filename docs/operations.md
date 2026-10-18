@@ -93,11 +93,11 @@ To trace a failed request, take the `request_id` shown in the UI error box or th
 | Part | Host (free tier) | Builds from |
 |---|---|---|
 | Frontend | Netlify | `netlify.toml` (base `frontend/`, SPA redirect), on every push |
-| Backend | Render web service, Docker runtime, root directory `backend` | `backend/Dockerfile` (honors `PORT`) |
+| Backend | Render web service (Blueprint: `render.yaml`) | `backend/Dockerfile` (honors `PORT`) |
 | Database + Auth | Supabase | `backend/migrations/001_init.sql` |
 | n8n | Your machine (expose with a Cloudflare Tunnel), or any n8n host | `n8n/*.workflow.json` |
 
-1. **Backend (Render).** Set the variables from `backend/.env.example` as environment variables, plus:
+1. **Backend (Render).** Render → New → **Blueprint** → this repo. `render.yaml` sets the fixed values; the dashboard asks for the secrets (`sync: false`). Notes:
    - `APP_ENV=production` (refuses to start with unsafe settings; the reason is in the Render logs);
    - `FRONTEND_ORIGINS=https://<site>.netlify.app`;
    - **Embeddings:** Ollama isn't reachable from Render. Use a hosted free API, e.g. Gemini: `EMBEDDING_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, `EMBEDDING_MODEL=gemini-embedding-001`, `EMBEDDING_API_KEY=<key>`, `EMBEDDING_DIM=768`, `EMBEDDING_SEND_DIMENSIONS=true`. Vectors from different models aren't comparable: **re-upload documents** after switching.

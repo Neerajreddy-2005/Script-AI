@@ -116,7 +116,8 @@ Offline baseline: retrieval Hit@5 **94%**, MRR **0.94**, and **100%** of unrelat
 ├── docs/                    architecture, decisions (ADRs), api, evaluation, operations
 ├── .github/workflows/ci.yml lint, tests, eval, frontend build, Docker smoke test
 ├── docker-compose.yml       local Postgres (pgvector) + API
-└── netlify.toml             frontend build + SPA routing
+├── netlify.toml             frontend build + SPA routing (Netlify)
+└── render.yaml              backend blueprint (Render)
 ```
 
 ## Security and privacy
