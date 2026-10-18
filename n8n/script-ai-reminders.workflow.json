@@ -1,0 +1,265 @@
+{
+  "name": "Script-AI Reminders",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "7f081fc7-2bea-5008-9a6c-4949a5d02941",
+      "name": "Every minute",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1e07460b-dc07-5fa2-afd0-bfa84bc1199a",
+              "name": "apiBaseUrl",
+              "value": "http://localhost:8000",
+              "type": "string"
+            },
+            {
+              "id": "e0640c7b-48fb-5f8e-bdf1-00c37216e620",
+              "name": "secret",
+              "value": "CHANGE-ME-same-as-N8N_SHARED_SECRET",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cddb672c-879a-5357-aa3c-a1180f775049",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -580,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.apiBaseUrl }}/api/internal/reminders/claim",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ScriptAI-Secret",
+              "value": "={{ $json.secret }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "332e9c91-fd04-562e-804e-3fb4d4c1387c",
+      "name": "Claim due reminders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const reminders = $input.first().json.reminders || [];\nreturn reminders.map((r) => ({ json: r }));"
+      },
+      "id": "af884907-493a-5dac-9cb4-f11102ce7a94",
+      "name": "One item per reminder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst para = (s) => esc(s).replace(/\\n/g, '<br>');\nconst wrap = (inner) => `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#111827\">${inner}<p style=\"color:#9ca3af;font-size:12px;margin-top:24px\">Sent by Script-AI</p></div>`;\nconst r = $json;\nconst when = new Date(r.remind_at).toUTCString();\nconst html = wrap(\n  `<h2>⏰ Reminder: ${esc(r.title)}</h2>` +\n  (r.note ? `<p>${para(r.note)}</p>` : '') +\n  `<p style=\"color:#6b7280\">Scheduled for ${esc(when)}</p>`\n);\nconst text = `Reminder: ${r.title}\\n\\n${r.note || ''}\\n\\nScheduled for ${when}`;\nreturn { json: { id: r.id, to: r.email, subject: `Reminder: ${r.title}`, html, text } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "03e8f16e-9ae3-5953-af38-7514dadfee3b",
+      "name": "Build reminder email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "Script-AI <CHANGE-ME@gmail.com>",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "both",
+        "text": "={{ $json.text }}",
+        "html": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "6b11c9ba-2f24-5320-8607-93cc8efbce63",
+      "name": "Send reminder email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        300,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.apiBaseUrl }}/api/internal/reminders/{{ $('Build reminder email').item.json.id }}/complete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ScriptAI-Secret",
+              "value": "={{ $('Config').first().json.secret }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"success\": true}",
+        "options": {}
+      },
+      "id": "c03b261a-4ae3-52e3-b924-aeec185172ff",
+      "name": "Mark sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.apiBaseUrl }}/api/internal/reminders/{{ $('Build reminder email').item.json.id }}/complete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-ScriptAI-Secret",
+              "value": "={{ $('Config').first().json.secret }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ success: false, error: String($json.error?.message || 'email failed').slice(0, 500) }) }}",
+        "options": {}
+      },
+      "id": "68bc12a2-4415-5035-bd37-6b6406bdad20",
+      "name": "Mark failed (retried up to 3x)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Every minute": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Claim due reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim due reminders": {
+      "main": [
+        [
+          {
+            "node": "One item per reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One item per reminder": {
+      "main": [
+        [
+          {
+            "node": "Build reminder email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build reminder email": {
+      "main": [
+        [
+          {
+            "node": "Send reminder email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send reminder email": {
+      "main": [
+        [
+          {
+            "node": "Mark sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark failed (retried up to 3x)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

@@ -1,0 +1,5 @@
+# Optional: free, offline embeddings on CPU (EMBEDDING_PROVIDER=local).
+# Pulls in PyTorch (~several hundred MB). all-MiniLM-L6-v2 produces 384-dim vectors,
+# so set EMBEDDING_DIM=384 and vector(384) in migrations/001_init.sql.
+-r requirements.txt
+sentence-transformers==3.2.1

@@ -1,0 +1,438 @@
+{
+  "name": "Script-AI Events & Email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "scriptai-events",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "a6ba6880-1c09-5502-a64c-bcf0b5cfae0b",
+      "name": "Receive Script-AI event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -700,
+        300
+      ],
+      "webhookId": "9a6d36d2-ed0e-5888-9d28-1d9a953d6ddb"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "392f6dd1-9285-5174-9aad-3579d584c474",
+              "leftValue": "={{ $json.headers['x-scriptai-secret'] }}",
+              "rightValue": "CHANGE-ME-same-as-N8N_SHARED_SECRET",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e0cf5b45-7a5d-5499-bcf3-dafcf5b415b5",
+      "name": "Valid secret?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "70ed4a3d-482f-5ef3-9d78-0863fd9dba22",
+      "name": "Ignore forged event",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "script.email_requested",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "script.email_requested"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "generation.failed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "generation.failed"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "generation.succeeded",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "generation.succeeded"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "document.ingested",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "document.ingested"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "document.deleted",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "document.deleted"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1630cf1-9385-5254-b047-2a5e9612cf63",
+      "name": "Route by event",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -220,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst para = (s) => esc(s).replace(/\\n/g, '<br>');\nconst wrap = (inner) => `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#111827\">${inner}<p style=\"color:#9ca3af;font-size:12px;margin-top:24px\">Sent by Script-AI</p></div>`;\nconst e = $json.body;\nconst d = e.data;\nconst sources = (d.sources || []).map((s) => `<li>[${esc(s.id)}] ${esc(s.filename)}</li>`).join('');\nconst html = wrap(\n  `<h2 style=\"margin-bottom:4px\">${esc(d.title)}</h2>` +\n  (d.platform ? `<p style=\"color:#6b7280;margin-top:0\">${esc(d.platform)} script</p>` : '') +\n  `<h3>Introduction</h3><p>${para(d.introduction)}</p>` +\n  `<h3>Main content</h3><p>${para(d.mainContent)}</p>` +\n  `<h3>Conclusion</h3><p>${para(d.conclusion)}</p>` +\n  (sources ? `<h4>Sources</h4><ul>${sources}</ul>` : '')\n);\nconst text = `${d.title}\\n\\nINTRODUCTION\\n${d.introduction}\\n\\nMAIN CONTENT\\n${d.mainContent}\\n\\nCONCLUSION\\n${d.conclusion}`;\nconst subject = d.background ? `Your script is ready: ${d.title}` : `Your script: ${d.title}`;\nreturn { json: { to: e.user.email, subject, html, text } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "57922ba8-e2ac-5674-888b-e4d013e62ff1",
+      "name": "Build script email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "Script-AI <CHANGE-ME@gmail.com>",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "both",
+        "text": "={{ $json.text }}",
+        "html": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "eed79a8a-991a-5f82-aed8-977a225642be",
+      "name": "Email the script",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "e007d770-7b5e-5b1e-ba8b-45a059e22de7",
+              "leftValue": "={{ $json.body.data.background }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0ce159c5-ea89-5f85-b68c-1870827db714",
+      "name": "Background job?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        60,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst para = (s) => esc(s).replace(/\\n/g, '<br>');\nconst wrap = (inner) => `<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#111827\">${inner}<p style=\"color:#9ca3af;font-size:12px;margin-top:24px\">Sent by Script-AI</p></div>`;\nconst e = $json.body;\nconst d = e.data;\nconst html = wrap(\n  `<h2>We couldn't finish your ${esc(d.platform)} script</h2>` +\n  `<p>${esc(d.message || 'Something went wrong.')}</p>` +\n  `<p style=\"color:#6b7280\">Error code: ${esc(d.error_code)} · request ${esc(e.request_id)}</p>` +\n  `<p>Please try again from the dashboard.</p>`\n);\nconst text = `We couldn't finish your ${d.platform} script.\\n${d.message || ''}\\nError code: ${d.error_code}`;\nreturn { json: { to: e.user.email, subject: 'Script-AI: your script could not be generated', html, text } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "7142323b-5e79-57f0-82c4-f410205209f8",
+      "name": "Build failure email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "Script-AI <CHANGE-ME@gmail.com>",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "both",
+        "text": "={{ $json.text }}",
+        "html": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "c1665689-d49e-5df6-825a-53544b5dfeff",
+      "name": "Email the failure",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        540,
+        140
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b5c5445d-77fb-59c4-bc5a-1f866c7bb6bf",
+      "name": "Add automations: script generated",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        60,
+        320
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "da5c35c3-1278-5a5e-8785-c9f355abb7ea",
+      "name": "Add automations: document indexed",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        60,
+        460
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "445e64bd-e23d-543e-9359-c16426ae00b0",
+      "name": "Add automations: document deleted",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        60,
+        600
+      ]
+    }
+  ],
+  "connections": {
+    "Receive Script-AI event": {
+      "main": [
+        [
+          {
+            "node": "Valid secret?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid secret?": {
+      "main": [
+        [
+          {
+            "node": "Route by event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignore forged event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by event": {
+      "main": [
+        [
+          {
+            "node": "Build script email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Background job?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add automations: script generated",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add automations: document indexed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add automations: document deleted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build script email": {
+      "main": [
+        [
+          {
+            "node": "Email the script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Background job?": {
+      "main": [
+        [
+          {
+            "node": "Build failure email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Build failure email": {
+      "main": [
+        [
+          {
+            "node": "Email the failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

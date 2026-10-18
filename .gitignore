@@ -22,6 +22,15 @@ frontend/.env
 frontend/.env.*
 backend/.env
 backend/.env.*
+# Templates with placeholder values only (never real keys).
+!.env.example
+!frontend/.env.example
+!backend/.env.example
+
+# Eval run outputs (regenerate with backend/eval/run_eval.py)
+backend/eval/results/*
+!backend/eval/results/.gitkeep
+!backend/eval/results/baseline_report.md
 
 # Python / Backend
 __pycache__/
@@ -42,20 +51,30 @@ coverage/
 dist/
 build/
 
-# n8n exported credentials or temp data
+# n8n: exported credentials, local data, and personal re-exports.
+# n8n/*.workflow.json ARE committed (placeholder secrets only). Re-export your
+# live workflows as *.local.json / *.export.json so real secrets never get committed.
 *.credentials.json
 *.secrets.json
 .n8n/
-
-# Local environment overrides
-*.local
-*.secret
-
-
-# Hide backend workflow JSON (n8n exports/configs)
+n8n/*.export.json
 backend/Backend.json
-backend/*.workflow.json
-backend/*.n8n.json
 backend/*.json
 
+# Keys, certificates, local overrides
+*.local
+*.local.json
+*.secret
+*.pem
+*.key
+*.p12
+
+# Deploy tooling state (contains site/project IDs)
+.netlify/
+.vercel/
+supabase/.temp/
+supabase/.branches/
+
+# Local Claude Code settings
+.claude/settings.local.json
 

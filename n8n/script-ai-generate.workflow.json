@@ -1,0 +1,220 @@
+{
+  "name": "Script-AI Generate (2.0)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/generate-script",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "http://localhost:8081"
+        }
+      },
+      "id": "7c45ba69-a6af-59c6-820a-75a7896e2a62",
+      "name": "Receive /api/generate-script",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        300
+      ],
+      "webhookId": "a4f8379d-5197-5173-a925-e164f66128fd"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/generate-script",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.headers.authorization || '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 300000
+        }
+      },
+      "id": "87d1d59b-7308-544e-a024-fec0dc76d512",
+      "name": "Generate via FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -360,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "6394cad2-b27f-577d-a8d9-7b1f45014168",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "62fb7582-c4b2-5f6a-9823-cec049acd000",
+      "name": "Generated OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "5bb9afd5-24a9-55d0-a696-5cd8019aa3fa",
+      "name": "Respond: script",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        120,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "e525c234-18ab-5a21-956f-b220acd5317d",
+      "name": "Respond: error from FastAPI",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        120,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, error: { code: 'backend_unreachable', message: 'The Script-AI backend is not reachable from n8n. Is uvicorn running on port 8000?' } }) }}",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "3accc4e1-58ad-5065-a9fd-2a5a0f7dd54a",
+      "name": "Respond: backend unreachable",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -120,
+        460
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "56c22fff-1704-50ce-90b3-9c0fe6d40e09",
+      "name": "Add automations here (runs after the response)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        360,
+        120
+      ]
+    }
+  ],
+  "connections": {
+    "Receive /api/generate-script": {
+      "main": [
+        [
+          {
+            "node": "Generate via FastAPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate via FastAPI": {
+      "main": [
+        [
+          {
+            "node": "Generated OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: backend unreachable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generated OK?": {
+      "main": [
+        [
+          {
+            "node": "Respond: script",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: error from FastAPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond: script": {
+      "main": [
+        [
+          {
+            "node": "Add automations here (runs after the response)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

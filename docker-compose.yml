@@ -1,0 +1,38 @@
+# Optional local stack. Supabase hosts the database normally; this gives you an
+# equivalent local Postgres + pgvector (no Supabase Auth, so use AUTH_DISABLED=true with it).
+#
+#   docker compose up -d db          # database only (migration runs on first start)
+#   docker compose up --build        # database + API (:8000)
+#   n8n runs separately on your machine (http://localhost:5678).
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: scriptai
+    ports:
+      - "54322:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scriptai"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/scriptai
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

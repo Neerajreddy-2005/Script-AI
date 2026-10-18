@@ -30,11 +30,6 @@ const Footer = () => {
                   How It Works
                 </Link>
               </li>
-              <li>
-                <Link to="/testimonials" className="text-scriptai-darkgray hover:text-scriptai-blue transition-colors duration-200 text-sm">
-                  Testimonials
-                </Link>
-              </li>
 
             </ul>
           </div>
