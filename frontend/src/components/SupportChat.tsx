@@ -84,13 +84,13 @@ const SupportChat = () => {
       {/* Chat Window */}
       <div
         className={`fixed bottom-6 right-6 w-[350px] z-50 overflow-hidden
-          bg-white rounded-lg shadow-xl border border-gray-200
+          glass-strong rounded-2xl
           flex flex-col transform transition-all duration-300 ease-in-out
           ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-[120%] opacity-0 pointer-events-none'}`}
         style={{ height: "450px" }}
       >
         {/* Chat Header */}
-        <div className="bg-white p-4 border-b border-gray-200">
+        <div className="bg-white p-4 border-b border-line">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-scriptai-black">Support Chat</h3>
             <button
@@ -144,12 +144,12 @@ const SupportChat = () => {
         </div>
 
         {/* Message Input */}
-        <form onSubmit={handleSubmit} className="border-t border-gray-200 p-3 bg-gray-50">
+        <form onSubmit={handleSubmit} className="border-t border-line p-3 bg-surface">
           <div className="relative">
             <input
               type="text"
               placeholder="Type your message..."
-              className="w-full p-2 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-scriptai-blue/30 focus:border-scriptai-blue text-sm"
+              className="w-full p-2 pr-10 rounded-full border border-line-input/50 focus:outline-none focus:ring-2 focus:ring-scriptai-blue/30 focus:border-scriptai-blue text-sm"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
             />

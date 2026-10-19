@@ -1,143 +1,151 @@
+import { useState } from "react";
+import { AudioLines, BookOpenText, Clapperboard, Library, Share2, ShieldCheck, type LucideIcon } from "lucide-react";
+import { CtaBand, Highlight, PageHeader, Reveal } from "@/components/marketing";
+import { cn } from "@/lib/utils";
 
-import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+interface Post {
+  title: string;
+  excerpt: string;
+  date: string;
+  readTime: string;
+  category: string;
+  icon: LucideIcon;
+  cover: string;
+}
+
+const POSTS: Post[] = [
+  {
+    title: "How AI is changing the way creators write in 2026",
+    excerpt: "From blank page to first draft in seconds: what AI scriptwriting does well, where it still needs you, and how to combine the two.",
+    date: "October 12, 2026",
+    readTime: "6 min read",
+    category: "AI writing",
+    icon: BookOpenText,
+    cover: "from-[#5a3cf0] to-[#d946ef]",
+  },
+  {
+    title: "5 hooks that keep viewers past the first 10 seconds",
+    excerpt: "The opening line decides whether people stay. Five hook patterns that work on YouTube and short-form video, with examples.",
+    date: "September 28, 2026",
+    readTime: "5 min read",
+    category: "Scriptwriting",
+    icon: Clapperboard,
+    cover: "from-[#0ea5e9] to-[#5a3cf0]",
+  },
+  {
+    title: "Read it out loud: why voice previews make better scripts",
+    excerpt: "Your ear catches what your eye misses. How listening to a draft exposes long sentences, tongue-twisters and weak transitions.",
+    date: "September 9, 2026",
+    readTime: "4 min read",
+    category: "Voice",
+    icon: AudioLines,
+    cover: "from-[#f97316] to-[#d946ef]",
+  },
+  {
+    title: "Grounding scripts in your brand guide",
+    excerpt: "Upload once, stay on-brand everywhere. A practical guide to building a knowledge base that makes every script sound like you.",
+    date: "August 21, 2026",
+    readTime: "7 min read",
+    category: "Brand",
+    icon: Library,
+    cover: "from-[#10b981] to-[#0ea5e9]",
+  },
+  {
+    title: "One idea, six platforms: adapting scripts for each feed",
+    excerpt: "What changes between a TikTok, a LinkedIn video and a podcast intro, and how to adapt one idea for all of them.",
+    date: "August 2, 2026",
+    readTime: "6 min read",
+    category: "Social media",
+    icon: Share2,
+    cover: "from-[#5a3cf0] to-[#0ea5e9]",
+  },
+  {
+    title: "Fact-checking AI scripts without slowing down",
+    excerpt: "Citations, quality checks and a two-minute review routine that keeps your content accurate.",
+    date: "July 15, 2026",
+    readTime: "5 min read",
+    category: "AI writing",
+    icon: ShieldCheck,
+    cover: "from-[#d946ef] to-[#f97316]",
+  },
+];
+
+const CATEGORIES = ["All", ...Array.from(new Set(POSTS.map((p) => p.category)))];
+
+const Cover = ({ post, large = false }: { post: Post; large?: boolean }) => {
+  const Icon = post.icon;
+  return (
+    <div className={cn("relative flex items-center justify-center overflow-hidden bg-gradient-to-br", post.cover, large ? "h-64 lg:h-full" : "h-48")}>
+      <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:20px_20px]" />
+      <Icon className={cn("relative text-white/90", large ? "h-20 w-20" : "h-12 w-12")} strokeWidth={1.5} />
+    </div>
+  );
+};
+
+const Meta = ({ post }: { post: Post }) => (
+  <div className="flex items-center gap-3 text-sm">
+    <span className="rounded-full bg-accent-soft px-2.5 py-0.5 font-semibold text-accent-text">{post.category}</span>
+    <span className="text-muted">
+      {post.date} · {post.readTime}
+    </span>
+  </div>
+);
 
 const BlogPage = () => {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const articleRefs = useRef<(HTMLDivElement | null)[]>([]);
-  
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-fade-in');
-            entry.target.classList.remove('opacity-0');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    if (headerRef.current) {
-      observer.observe(headerRef.current);
-    }
-
-    articleRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
-  const blogPosts = [
-    {
-      title: "How AI is Revolutionizing Content Creation",
-      excerpt: "Discover how artificial intelligence is transforming the way creators develop scripts and content across multiple platforms.",
-      date: "May 15, 2023",
-      imageUrl: "https://images.unsplash.com/photo-1677442135406-67d4205c113b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2232&q=80",
-      category: "AI Technology"
-    },
-    {
-      title: "5 Tips for Writing Engaging YouTube Scripts",
-      excerpt: "Learn the secrets of creating compelling YouTube scripts that keep viewers watching until the end.",
-      date: "April 22, 2023",
-      imageUrl: "https://images.unsplash.com/photo-1629411949417-762a1aa082a4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2670&q=80",
-      category: "Script Writing"
-    },
-    {
-      title: "The Future of Voice Synthesis in Content Creation",
-      excerpt: "Explore how advanced voice synthesis is changing the way content creators produce audio for their projects.",
-      date: "March 10, 2023",
-      imageUrl: "https://images.unsplash.com/photo-1590578226128-8297d032539e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2574&q=80",
-      category: "Voice Technology"
-    },
-    {
-      title: "Optimizing Scripts for Different Social Media Platforms",
-      excerpt: "A comprehensive guide to tailoring your scripts for maximum engagement across various social media channels.",
-      date: "February 3, 2023",
-      imageUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2670&q=80",
-      category: "Social Media"
-    }
-  ];
+  const [category, setCategory] = useState("All");
+  const [featured, ...rest] = POSTS;
+  const visible = category === "All" ? rest : POSTS.filter((p) => p.category === category);
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      {/* Header Section */}
-      <section 
-        ref={headerRef}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 opacity-0"
-      >
-        <div className="text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-scriptai-black mb-6">
-            ScriptAI <span className="text-scriptai-blue">Blog</span>
-          </h1>
-          <p className="text-xl text-scriptai-darkgray max-w-3xl mx-auto">
-            Expert insights, tips, and updates to help you create better content
-          </p>
-        </div>
-      </section>
+    <div>
+      <PageHeader
+        eyebrow="Blog"
+        title={
+          <>
+            Ideas for <Highlight>better scripts</Highlight>
+          </>
+        }
+        subtitle="Tips, guides and updates on writing, voice and content strategy."
+      />
 
-      {/* Blog Posts Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-2 gap-8">
-          {blogPosts.map((post, index) => (
-            <div
-              key={index}
-              ref={(el) => (articleRefs.current[index] = el)}
-              className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md opacity-0"
-            >
-              <div className="h-60 overflow-hidden">
-                <img
-                  src={post.imageUrl}
-                  alt={post.title}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-scriptai-blue">{post.category}</span>
-                  <span className="text-sm text-scriptai-darkgray">{post.date}</span>
-                </div>
-                <h3 className="text-xl font-semibold text-scriptai-black mb-2">{post.title}</h3>
-                <p className="text-scriptai-darkgray mb-4">{post.excerpt}</p>
-                <a href="#" className="text-scriptai-blue font-medium hover:underline inline-flex items-center">
-                  Read More
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </a>
+      <section className="container-page pb-24">
+        {category === "All" && (
+          <Reveal className="card mb-12 grid overflow-hidden lg:grid-cols-2">
+            <Cover post={featured} large />
+            <div className="flex flex-col justify-center p-8 sm:p-12">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent-text">Featured</p>
+              <h2 className="mt-3 text-3xl font-bold text-text text-balance">{featured.title}</h2>
+              <p className="mt-4 text-lg text-muted">{featured.excerpt}</p>
+              <div className="mt-6">
+                <Meta post={featured} />
               </div>
             </div>
+          </Reveal>
+        )}
+
+        <div className="mb-8 flex flex-wrap gap-2">
+          {CATEGORIES.map((c) => (
+            <button key={c} onClick={() => setCategory(c)} aria-pressed={category === c} className={cn("chip", category === c && "chip-active")}>
+              {c}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {visible.map((post, i) => (
+            <Reveal key={post.title} delay={(i % 3) * 80} className="card group overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-pop">
+              <Cover post={post} />
+              <div className="p-6">
+                <Meta post={post} />
+                <h3 className="mt-4 text-lg font-bold text-text group-hover:text-accent-text">{post.title}</h3>
+                <p className="mt-2 text-muted">{post.excerpt}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
-      {/* Newsletter Section */}
-      <section className="bg-scriptai-lightblue py-16 mt-12">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-scriptai-black mb-4">
-            Stay Updated with Our Newsletter
-          </h2>
-          <p className="text-lg text-scriptai-darkgray mb-8 max-w-3xl mx-auto">
-            Get the latest content creation tips, AI updates, and exclusive resources directly to your inbox.
-          </p>
-          <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
-            <input 
-              type="email" 
-              placeholder="Your email address" 
-              className="input-field flex-grow"
-            />
-            <Button className="bg-scriptai-blue hover:bg-blue-600 text-white sm:w-auto">
-              Subscribe
-            </Button>
-          </div>
-        </div>
-      </section>
+      <CtaBand title="Put these tips into practice" subtitle="Write your next script with ScriptAI." />
     </div>
   );
 };

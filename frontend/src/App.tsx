@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
-import CustomCursor from "./components/CustomCursor";
+import GlassPointer from "./components/GlassPointer";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SupportChat from "./components/SupportChat";
@@ -46,8 +46,8 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <div className="relative min-h-screen flex flex-col">
-            <CustomCursor />
             <ScrollToTop />
+            <GlassPointer />
             <Navbar />
             <main className="flex-grow">
               <Suspense fallback={<div className="min-h-screen" />}>

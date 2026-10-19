@@ -66,7 +66,7 @@ const RemindersPanel = ({ suggestedTitle, userEmail }: { suggestedTitle?: string
   const items = reminders.data ?? [];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="card p-6">
       <h2 className="flex items-center gap-2 text-xl font-semibold text-scriptai-black mb-2">
         <Bell className="h-5 w-5 text-scriptai-blue" /> Email Reminders
       </h2>
@@ -97,7 +97,7 @@ const RemindersPanel = ({ suggestedTitle, userEmail }: { suggestedTitle?: string
           </p>
         )}
         {items.map((r) => (
-          <div key={r.id} className="flex items-start gap-2 rounded-md border border-gray-100 px-3 py-2">
+          <div key={r.id} className="flex items-start gap-2 rounded-xl border border-line px-3 py-2">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-scriptai-black" title={r.title}>{r.title}</p>
               <p className="text-xs text-scriptai-darkgray">

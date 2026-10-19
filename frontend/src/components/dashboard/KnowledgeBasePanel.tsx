@@ -14,8 +14,8 @@ interface Props {
 
 const STATUS_STYLES: Record<KnowledgeDocument["status"], string> = {
   ready: "bg-green-50 text-green-700",
-  processing: "bg-blue-50 text-blue-700",
-  uploaded: "bg-blue-50 text-blue-700",
+  processing: "bg-accent-soft text-accent-text",
+  uploaded: "bg-accent-soft text-accent-text",
   deleting: "bg-gray-100 text-gray-600",
   failed: "bg-red-50 text-red-700",
 };
@@ -64,13 +64,13 @@ const KnowledgeBasePanel = ({ enabled, onEnabledChange, selectedIds, onSelectedI
   const docs = documents.data ?? [];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-scriptai-black">Knowledge Base</h2>
         <label className="flex items-center gap-2 text-sm text-scriptai-darkgray cursor-pointer">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-line-input"
             checked={enabled}
             onChange={(e) => onEnabledChange(e.target.checked)}
           />
@@ -109,11 +109,11 @@ const KnowledgeBasePanel = ({ enabled, onEnabledChange, selectedIds, onSelectedI
           <p className="text-sm text-scriptai-darkgray">No documents yet.</p>
         )}
         {docs.map((doc) => (
-          <div key={doc.id} className="flex items-center gap-3 rounded-md border border-gray-100 px-3 py-2">
+          <div key={doc.id} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2">
             <input
               type="checkbox"
               aria-label={`Use ${doc.filename} only`}
-              className="h-4 w-4 rounded border-gray-300"
+              className="h-4 w-4 rounded border-line-input"
               disabled={doc.status !== "ready"}
               checked={selectedIds.includes(doc.id)}
               onChange={() => toggleSelected(doc.id)}

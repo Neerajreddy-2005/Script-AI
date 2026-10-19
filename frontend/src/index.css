@@ -1,161 +1,227 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Design tokens (WCAG AA checked). RGB channels so Tailwind opacity modifiers work. */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --bg: 255 255 255;
+    --surface: 247 246 253;
+    --surface-2: 239 236 253;
+    --border: 231 228 243;
+    --border-input: 140 136 168;
+    --text: 17 13 44;
+    --text-muted: 87 84 113;
+    --accent: 90 60 240;
+    --accent-hover: 70 40 214;
+    --accent-soft: 239 235 255;
+    --accent-text: 74 47 216;
+    --ink: 16 12 41;
+    --on-ink: 236 235 246;
+    --on-ink-muted: 168 165 195;
+    --danger: 198 47 47;
+    --success: 31 122 77;
   }
 
   * {
-    @apply border-gray-200;
+    @apply border-line;
   }
 
-  html, body, #root {
-    height: 100%;
-    overflow-x: hidden;
+  html {
     scroll-behavior: smooth;
-    /* Hide scrollbars globally */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
   }
 
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  ::-webkit-scrollbar {
-    display: none;
-  }
-  
   body {
-    @apply bg-background text-foreground;
-    cursor: none !important;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    @apply text-text antialiased;
+    background-color: rgb(244 241 255);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  .prevent-cursor {
-    cursor: none !important;
+  /* Fixed, slowly drifting colour field behind the whole site: clear glass needs colour behind it. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -10%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(40% 45% at 15% 20%, rgb(124 58 237 / 0.22), transparent 70%),
+      radial-gradient(35% 40% at 85% 15%, rgb(236 72 153 / 0.25), transparent 70%),
+      radial-gradient(45% 45% at 70% 80%, rgb(56 189 248 / 0.3), transparent 70%),
+      radial-gradient(35% 40% at 10% 85%, rgb(250 204 21 / 0.15), transparent 70%);
+    animation: drift 40s ease-in-out infinite alternate;
   }
 
-  .glass {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg;
+  @keyframes drift {
+    to { transform: translate3d(4%, 3%, 0) scale(1.08); }
   }
 
-  .glass-dark {
-    @apply bg-black/5 backdrop-blur-md border border-white/10;
+  h1, h2, h3 {
+    @apply tracking-tight;
   }
 
-  .page-transition-enter {
-    @apply opacity-0;
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2;
   }
 
-  .page-transition-enter-active {
-    @apply opacity-100 transition-opacity duration-300;
-  }
-
-  .page-transition-exit {
-    @apply opacity-100;
-  }
-
-  .page-transition-exit-active {
-    @apply opacity-0 transition-opacity duration-300;
-  }
-
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .hide-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  
   .text-balance {
     text-wrap: balance;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
+  .container-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-accent-text;
+  }
+
   .btn-primary {
-    @apply bg-scriptai-blue hover:bg-blue-600 text-white font-medium rounded-lg transition-all duration-300;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 font-semibold text-white transition-all duration-200 hover:bg-accent-hover active:scale-[0.97] disabled:opacity-60 disabled:pointer-events-none;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), inset 0 -2px 6px rgb(0 0 0 / 0.12), 0 8px 24px -8px rgb(var(--accent) / 0.6);
   }
-  
+
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-scriptai-darkgray font-medium rounded-lg border border-gray-200 transition-all duration-300;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-semibold text-text transition-all duration-200 hover:-translate-y-px active:scale-[0.97] disabled:opacity-60 disabled:pointer-events-none;
   }
-  
+
+  /* Light glass for everyday surfaces. */
   .card {
-    @apply bg-white rounded-lg shadow-sm;
+    @apply rounded-2xl;
   }
-  
+
+  /*
+   * Clear liquid glass: a faint white fill, light blur with boosted saturation, a bright hairline
+   * border and inner glow. ::after draws the bright rim along the lower and right edges;
+   * ::before is a specular highlight that follows the pointer (--mx / --my from GlassPointer).
+   */
+  .glass, .card, .btn-secondary, .glass-strong, .glass-dark {
+    position: relative;
+    isolation: isolate;
+    background: rgb(255 255 255 / 0.15);
+    -webkit-backdrop-filter: blur(2px) saturate(180%);
+    backdrop-filter: blur(2px) saturate(180%);
+    border: 1px solid rgb(255 255 255 / 0.8);
+    box-shadow: 0 8px 32px rgb(31 38 135 / 0.14), inset 0 4px 20px rgb(255 255 255 / 0.3);
+  }
+
+  .glass::before, .card::before, .btn-secondary::before, .glass-strong::before, .glass-dark::before,
+  .glass::after, .card::after, .btn-secondary::after, .glass-strong::after, .glass-dark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .glass::before, .card::before, .btn-secondary::before, .glass-strong::before, .glass-dark::before {
+    background: radial-gradient(220px circle at var(--mx, 30%) var(--my, -30%), rgb(255 255 255 / 0.6), transparent 60%);
+    opacity: 0.35;
+    transition: opacity 0.3s ease;
+  }
+
+  .glass:hover::before, .card:hover::before, .btn-secondary:hover::before, .glass-strong:hover::before, .glass-dark:hover::before {
+    opacity: 0.9;
+  }
+
+  .glass::after, .card::after, .btn-secondary::after, .glass-strong::after, .glass-dark::after {
+    background: rgb(255 255 255 / 0.1);
+    box-shadow: inset -10px -8px 0 -11px rgb(255 255 255), inset 0 -9px 0 -8px rgb(255 255 255);
+    opacity: 0.6;
+    filter: blur(1px) drop-shadow(10px 4px 6px rgb(31 38 135 / 0.25)) brightness(115%);
+  }
+
+  /* Slightly more body for hero pieces that hold form fields. */
+  .glass-strong {
+    background: rgb(255 255 255 / 0.25);
+    box-shadow: 0 30px 80px -20px rgb(var(--accent-text) / 0.35), inset 0 4px 24px rgb(255 255 255 / 0.4);
+  }
+
+  /* Clear glass on dark backgrounds. */
+  .glass-dark {
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.3);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.35), inset 0 4px 20px rgb(255 255 255 / 0.08);
+  }
+
+  .glass-dark::before {
+    opacity: 0.15;
+  }
+
+  .glass-dark::after {
+    opacity: 0.35;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass, .card, .btn-secondary, .glass-strong, .glass-dark {
+      background: rgb(255 255 255 / 0.7);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .glass, .card, .btn-secondary, .glass-strong, .glass-dark {
+      background: rgb(var(--bg));
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .glass-dark {
+      background: rgb(var(--ink));
+    }
+  }
+
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-scriptai-blue/20 focus:border-scriptai-blue transition-all duration-300;
+    @apply w-full rounded-xl border border-line-input/50 bg-white px-4 py-2.5 text-text placeholder:text-muted/70 transition-colors duration-200 focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15;
   }
-}
 
-/* Hide default cursor globally */
-* {
-  cursor: none !important;
-}
+  .chip {
+    @apply rounded-full border border-white/80 bg-white/30 px-3.5 py-1.5 text-sm font-medium text-muted backdrop-blur-md transition-all duration-200 hover:border-accent/40 hover:bg-white/90 hover:text-text active:scale-95;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(17 13 44 / 0.06);
+  }
 
-/* Ensure custom cursor is visible */
-.prevent-cursor {
-  cursor: none !important;
-}
+  .chip-active {
+    @apply border-accent/60 bg-accent-soft/80 text-accent-text hover:bg-accent-soft hover:text-accent-text;
+  }
 
-/* Ensure no elements override the cursor */
-a, button, input, textarea, select, [role="button"] {
-  cursor: none !important;
+  /* Drifting colour fields behind glass; without colour behind it, glass reads as plain white. */
+  .hero-glow {
+    background:
+      radial-gradient(45% 55% at 20% 20%, rgb(var(--accent) / 0.28), transparent 70%),
+      radial-gradient(40% 50% at 85% 15%, rgb(236 72 153 / 0.2), transparent 70%),
+      radial-gradient(45% 45% at 70% 85%, rgb(56 189 248 / 0.2), transparent 70%),
+      radial-gradient(35% 40% at 10% 90%, rgb(250 204 21 / 0.12), transparent 70%);
+    background-size: 160% 160%;
+    animation: aurora 22s ease-in-out infinite alternate;
+    /* Fade out at the bottom so the glow never ends in a hard line. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  }
+
+  .aurora-soft {
+    background:
+      radial-gradient(40% 40% at 0% 0%, rgb(var(--accent) / 0.12), transparent 70%),
+      radial-gradient(40% 40% at 100% 30%, rgb(236 72 153 / 0.08), transparent 70%),
+      radial-gradient(50% 50% at 50% 100%, rgb(56 189 248 / 0.1), transparent 70%),
+      rgb(255 255 255 / 0.25);
+    background-size: 150% 150%, 150% 150%, 150% 150%, auto;
+    animation: aurora 30s ease-in-out infinite alternate;
+  }
+
+  @keyframes aurora {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 30%; }
+    100% { background-position: 30% 100%; }
+  }
 }
