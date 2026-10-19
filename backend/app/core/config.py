@@ -72,6 +72,8 @@ class Settings(BaseSettings):
 
 	# --- Reminders ---------------------------------------------------------
 	max_pending_reminders_per_user: int = 50
+	# Emails + new reminders per user per hour; protects the shared SMTP account's daily cap.
+	max_emails_per_user_per_hour: int = 20
 
 	# --- Agent & quotas ----------------------------------------------------
 	max_agent_steps: int = 8

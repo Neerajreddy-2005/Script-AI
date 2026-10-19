@@ -113,6 +113,12 @@ begin
         drop policy if exists reminders_owner on reminders;
         create policy reminders_owner on reminders
             for select using (owner_id = auth.uid());
+
+        -- The browser never reads or writes these tables: all access goes through FastAPI,
+        -- which connects as the table owner. Supabase grants anon/authenticated full table
+        -- privileges by default, which (with the policies above) would let any signed-in user
+        -- write rows straight through the REST API, bypassing upload limits and validation.
+        revoke all on documents, document_chunks, generations, reminders from anon, authenticated;
     end if;
 end
 $$;

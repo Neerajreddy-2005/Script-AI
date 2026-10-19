@@ -182,3 +182,24 @@ def test_pending_reminder_limit(make_client):
 	create(client, title="a", minutes=10)
 	r = client.post("/api/reminders", json={"title": "b", "remind_at": in_minutes(10)}, headers=auth())
 	assert r.status_code == 400 and r.json()["error"]["code"] == "reminder_limit_reached"
+
+
+# --- per-user email budget (protects the shared SMTP account) ------------------------
+
+
+def test_email_budget_blocks_one_user_but_not_others(make_client):
+	client = make_client(settings=make_settings(max_emails_per_user_per_hour=2))
+	body = {"script": SCRIPT}
+	assert client.post("/api/scripts/email", json=body, headers=auth()).status_code == 202
+	assert client.post("/api/scripts/email", json=body, headers=auth()).status_code == 202
+	r = client.post("/api/scripts/email", json=body, headers=auth())
+	assert r.status_code == 429 and r.json()["error"]["code"] == "email_rate_limited"
+	assert client.post("/api/scripts/email", json=body, headers=auth(USER_B)).status_code == 202
+
+
+def test_reminders_share_the_email_budget(make_client):
+	client = make_client(settings=make_settings(max_emails_per_user_per_hour=1))
+	create(client)
+	r = client.post("/api/reminders", json={"title": "again", "remind_at": in_minutes(30)}, headers=auth())
+	assert r.status_code == 429
+	assert client.post("/api/scripts/email", json={"script": SCRIPT}, headers=auth()).status_code == 429

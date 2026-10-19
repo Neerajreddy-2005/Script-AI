@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 
 from app.core.auth import CurrentUser, get_current_user, require_n8n
-from app.deps import get_reminder_service
+from app.deps import get_email_limiter, get_reminder_service
 from app.schemas.reminders import (
 	ClaimResponse,
 	CompleteReminderRequest,
@@ -13,6 +13,7 @@ from app.schemas.reminders import (
 	ReminderOut,
 	ReminderResponse,
 )
+from app.services.email_limit import EmailRateLimiter
 from app.services.reminders import ReminderService
 
 router = APIRouter(prefix="/api/reminders", tags=["reminders"])
@@ -24,8 +25,10 @@ def create_reminder(
 	req: CreateReminderRequest,
 	user: CurrentUser = Depends(get_current_user),
 	service: ReminderService = Depends(get_reminder_service),
+	limiter: EmailRateLimiter = Depends(get_email_limiter),
 ) -> ReminderResponse:
 	"""Schedule an email reminder to the signed-in user's own address."""
+	limiter.consume(user.id)  # each reminder becomes one email
 	return ReminderResponse(reminder=ReminderOut.from_reminder(service.create(user, req)))
 
 

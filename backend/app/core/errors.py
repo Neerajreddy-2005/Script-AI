@@ -67,6 +67,12 @@ class QuotaExceededError(AppError):
 	message = "Daily generation limit reached. Try again tomorrow."
 
 
+class RateLimitedError(AppError):
+	status_code = 429
+	code = "email_rate_limited"
+	message = "Too many emails. Please try again later."
+
+
 class ProviderError(AppError):
 	"""The upstream model/embedding provider failed or returned unusable output."""
 

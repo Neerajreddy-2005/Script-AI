@@ -13,3 +13,15 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Security headers. frame-ancestors / X-Frame-Options stop other sites from framing the app
+# (clickjacking); the CSP only allows scripts from this site and API calls to our backend and Supabase.
+# If the backend URL changes, update connect-src too.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script-ai-api.onrender.com https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

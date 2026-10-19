@@ -26,7 +26,7 @@ Step-by-step local setup is in the [README](../README.md#getting-started); n8n s
 | Service | Port | Health |
 |---|---|---|
 | FastAPI | 8000 | `/api/health`, `/api/ready` |
-| n8n | 5678 | Workflows "Script-AI Generate (2.0)", "Script-AI Events & Email", and "Script-AI Reminders" must be **Active** |
+| n8n | 5678 | Workflows "Script-AI Events & Email" and "Script-AI Reminders" must be **Active** ("Script-AI Generate (2.0)" only for the local gateway) |
 | Frontend (Vite) | 8081 | |
 
 In n8n, failed runs appear under **Executions**. The generate workflow returns FastAPI's error status and body unchanged, and returns 503 `backend_unreachable` if FastAPI is down.
@@ -81,9 +81,9 @@ To trace a failed request, take the `request_id` shown in the UI error box or th
 | Reminders stay "scheduled" | The n8n Reminders workflow is inactive, or its Config secret or URL is wrong. See [n8n/README.md](../n8n/README.md#troubleshooting) |
 | "The Script-AI backend is not reachable from n8n" | uvicorn is stopped, or n8n runs in Docker and uses `localhost` (use `host.docker.internal:8000`) |
 | `/api/ready` shows `database: ok (in-memory)` | `DATABASE_URL` is empty or uvicorn wasn't restarted after editing `.env` |
-| Blank white page on the frontend | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` missing in `frontend/.env.local`; restart `npm run dev` |
+| Blank white page on the frontend | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` missing or still placeholders (locally in `frontend/.env.local`, on Netlify in Environment variables). They're baked in at build time: fix them, then **Clear cache and deploy**. To confirm, search the live JS bundle for `supabase.co` |
 | No `[S1]` markers in the script | The Preview tab hides bracketed text; the Editor tab and the Sources panel show citations |
-| `embedding_failed` on upload | Ollama isn't running (`ollama list`) |
+| `embedding_failed` on upload | Wrong `EMBEDDING_API_KEY` / model, or (local Ollama setups) Ollama isn't running (`ollama list`) |
 | Changes in `.env` are ignored | Both servers read env files only at startup: restart them |
 | Browser CORS error | Add the exact frontend origin to `FRONTEND_ORIGINS` (scheme + host + port) |
 | 401 immediately after login | The backend's `SUPABASE_URL` or `SUPABASE_JWT_SECRET` doesn't match the frontend's project |
@@ -95,7 +95,7 @@ To trace a failed request, take the `request_id` shown in the UI error box or th
 | Frontend | Netlify | `netlify.toml` (base `frontend/`, SPA redirect), on every push |
 | Backend | Render web service (Blueprint: `render.yaml`) | `backend/Dockerfile` (honors `PORT`) |
 | Database + Auth | Supabase | `backend/migrations/001_init.sql` |
-| n8n | Your machine (expose with a Cloudflare Tunnel), or any n8n host | `n8n/*.workflow.json` |
+| n8n | Your machine in Docker, exposed with an ngrok static domain | `n8n/*.workflow.json` |
 
 1. **Backend (Render).** Render → New → **Blueprint** → this repo. `render.yaml` sets the fixed values; the dashboard asks for the secrets (`sync: false`). Notes:
    - `APP_ENV=production` (refuses to start with unsafe settings; the reason is in the Render logs);
@@ -104,7 +104,7 @@ To trace a failed request, take the `request_id` shown in the UI error box or th
    - The free tier sleeps after 15 idle minutes; the first request then takes ~50 s.
 2. **Frontend (Netlify).** Site configuration → Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_BACKEND_URL=https://<app>.onrender.com`. Leave `VITE_N8N_WEBHOOK_URL` empty unless n8n has a public URL; generation then calls FastAPI directly.
 3. **Supabase.** Authentication → URL Configuration: add the Netlify URL as Site URL and Redirect URL.
-4. **n8n.** Point the Generate/Reminders nodes at the Render URL ([n8n/README.md](../n8n/README.md)). For emails from the deployed backend, `N8N_EVENTS_URL` must be a public URL of n8n (e.g. a Cloudflare Tunnel); production refuses to start if it's set without an `N8N_SHARED_SECRET` of 16+ characters.
+4. **n8n.** Point the Reminders Config node at the Render URL ([n8n/README.md](../n8n/README.md)). For emails from the deployed backend, `N8N_EVENTS_URL` must be a public URL of n8n: run `ngrok http 5678 --url=https://<your-domain>.ngrok-free.dev --traffic-policy-file=n8n/ngrok-policy.yml`, which exposes only the events webhook ([setup](../n8n/README.md#4-expose-n8n-to-the-deployed-backend-ngrok)). Production refuses to start if it's set without an `N8N_SHARED_SECRET` of 16+ characters.
 5. **Smoke test:**
    - `curl https://<app>.onrender.com/api/ready` returns `{"status":"ready"}`;
    - sign in, upload `backend/eval/corpus/brewly_products.md`, and generate with the knowledge base enabled;
