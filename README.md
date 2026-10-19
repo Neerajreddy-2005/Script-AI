@@ -40,16 +40,16 @@ Details: [docs/architecture.md](docs/architecture.md) · design decisions: [docs
 
 ## Getting started
 
-Prerequisites: Node.js 18+, Python 3.10+, n8n (desktop, `npx n8n`, or Docker), a free [Supabase](https://supabase.com) project, an LLM API key (e.g. OpenRouter), and [Ollama](https://ollama.com) for free local embeddings.
+Prerequisites: Node.js 18+, Python 3.10+, n8n (desktop, `npx n8n`, or Docker), a free [Supabase](https://supabase.com) project, an LLM API key (e.g. OpenRouter), and a free [Gemini API key](https://aistudio.google.com/apikey) for embeddings.
 
 1. **Database.** Supabase → SQL Editor → run [`backend/migrations/001_init.sql`](backend/migrations/001_init.sql) (safe to re-run).
-2. **Embeddings.** `ollama pull nomic-embed-text`
+2. **Embeddings.** Create a free Gemini API key (or use Ollama offline; see `backend/.env.example`).
 3. **Backend.**
    ```bash
    cd backend
    python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scriptsctivate
    pip install -r requirements-dev.txt
-   cp .env.example .env     # fill LLM_API_KEY, DATABASE_URL (Session pooler), SUPABASE_URL, N8N_SHARED_SECRET
+   cp .env.example .env     # fill every line marked <-- REQUIRED
    uvicorn app.main:app --reload --port 8000
    ```
    `http://localhost:8000/api/ready` must report every check `ok`.
