@@ -48,7 +48,7 @@ const Footer = () => (
 
       {COLUMNS.map((col) => (
         <div key={col.title}>
-          <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-on-ink-muted">{col.title}</h3>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-on-ink-muted">{col.title}</h2>
           <ul className="mt-4 space-y-3">
             {col.links.map((link) => (
               <li key={link.to}>

@@ -5,8 +5,8 @@ import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 
 export const Logo = ({ className, light = false }: { className?: string; light?: boolean }) => (
-  <Link to="/" className={cn("flex items-center gap-2", className)} aria-label="ScriptAI home">
-    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-[#d946ef] text-sm font-extrabold text-white shadow-sm">
+  <Link to="/" className={cn("flex items-center gap-2", className)}>
+    <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-[#d946ef] text-sm font-extrabold text-white shadow-sm">
       S
     </span>
     <span className={cn("text-lg font-bold tracking-tight", light ? "text-white" : "text-text")}>

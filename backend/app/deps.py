@@ -3,11 +3,12 @@
 import logging
 from functools import lru_cache
 
-from fastapi import Depends
+from fastapi import Depends, Request
 
 from app.core.config import Settings, get_settings
 from app.repositories.base import Repository
 from app.repositories.memory import InMemoryRepository
+from app.services.email_limit import EmailRateLimiter
 from app.services.embeddings import Embedder, build_embedder
 from app.services.events import EventPublisher, N8nWebhookPublisher, NullPublisher
 from app.services.generation import GenerationService
@@ -77,6 +78,14 @@ def get_generation_service(
 	settings: Settings = Depends(get_settings),
 ) -> GenerationService:
 	return GenerationService(llm, knowledge, repo, settings)
+
+
+def get_email_limiter(request: Request, settings: Settings = Depends(get_settings)) -> EmailRateLimiter:
+	"""One limiter per app instance (so each test client starts fresh)."""
+	limiter = getattr(request.app.state, "email_limiter", None)
+	if limiter is None:
+		limiter = request.app.state.email_limiter = EmailRateLimiter(settings.max_emails_per_user_per_hour)
+	return limiter
 
 
 def get_reminder_service(

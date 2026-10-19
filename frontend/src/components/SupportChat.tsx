@@ -64,6 +64,8 @@ const SupportChat = () => {
     <>
       {/* Chat Button */}
       <button
+        aria-label={isOpen ? "Close support chat" : "Open support chat"}
+        aria-expanded={isOpen}
         className={`fixed bottom-6 right-6 w-14 h-14 rounded-full z-50 shadow-lg
           flex items-center justify-center transition-all duration-300
           ${isOpen ? 'bg-gray-100 rotate-90' : 'bg-scriptai-blue text-white'}`}
@@ -95,6 +97,7 @@ const SupportChat = () => {
             <h3 className="text-lg font-semibold text-scriptai-black">Support Chat</h3>
             <button
               onClick={toggleChat}
+              aria-label="Close support chat"
               className="text-gray-500 hover:text-gray-700"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -155,6 +158,7 @@ const SupportChat = () => {
             />
             <button
               type="submit"
+              aria-label="Send message"
               className="absolute right-2 top-2 text-scriptai-blue"
               disabled={!newMessage.trim()}
             >

@@ -2,7 +2,7 @@
 
 The base URL is the FastAPI backend (for example `http://localhost:8000`). Interactive documentation is at `/docs`.
 
-In the standard setup, the browser calls `/api/generate-script` through the **n8n webhook** (`http://localhost:5678/webhook/api/generate-script`). n8n forwards the request and the `Authorization` header to FastAPI and returns the same JSON shape and status codes documented below. Knowledge-base routes are called on FastAPI directly.
+In production the browser calls every route on FastAPI directly (`VITE_BACKEND_URL`). Locally you can optionally route `/api/generate-script` through the **n8n webhook** (`http://localhost:5678/webhook/api/generate-script`, enabled by `VITE_N8N_WEBHOOK_URL`); n8n forwards the request and the `Authorization` header to FastAPI and returns the same JSON shape and status codes documented below.
 
 Every `/api/...` request needs `Authorization: Bearer <supabase access token>`, except:
 

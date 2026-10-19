@@ -1,10 +1,12 @@
 # n8n workflows
 
-n8n is the generation gateway and the email/automation hub. FastAPI holds the AI logic; n8n sends every email.
+n8n is the email and automation hub. FastAPI holds the AI logic; n8n sends every email (scripts, background results, reminders).
+
+In production, n8n runs in Docker on the developer's machine and is reachable by the Render backend through an **ngrok static domain** (see [Expose n8n to the deployed backend](#4-expose-n8n-to-the-deployed-backend-ngrok)). The website calls FastAPI directly; the Generate workflow is only used as an optional gateway in local development.
 
 | File | Workflow | Trigger | Does |
 |---|---|---|---|
-| `script-ai-generate.workflow.json` | Script-AI Generate (2.0) | Webhook `POST /webhook/api/generate-script` | Forwards the request (with the user's `Authorization` header) to FastAPI and returns its response |
+| `script-ai-generate.workflow.json` | Script-AI Generate (2.0) | Webhook `POST /webhook/api/generate-script` | *Local development only.* Forwards the request (with the user's `Authorization` header) to FastAPI and returns its response |
 | `script-ai-events.workflow.json` | Script-AI Events & Email | Webhook `POST /webhook/scriptai-events` | Receives FastAPI events; emails scripts ("Email me", background jobs) and background failures |
 | `script-ai-reminders.workflow.json` | Script-AI Reminders | Every minute | Claims due reminders from FastAPI, emails them, marks them sent/failed (3 attempts) |
 
@@ -44,7 +46,7 @@ Import each file (Workflows → ⋯ → Import from File), then:
 |---|---|
 | natively (`npx n8n`, desktop app) | `localhost:8000` |
 | in Docker | `host.docker.internal:8000` (inside a container `localhost` is the container) |
-| backend deployed | `your-app.onrender.com` (https) |
+| backend deployed | `script-ai-api.onrender.com` (https) |
 
 Then **Save → Activate/Publish** all three. Deactivate any older workflow that uses the `api/generate-script` path.
 
@@ -54,6 +56,20 @@ In `backend/.env`, `N8N_EVENTS_URL` is the Events workflow's production webhook 
 
 - Executions → "Script-AI Reminders" shows a successful run every minute.
 - Set a reminder 2 minutes ahead in the dashboard; the email arrives and the status becomes *sent*.
+
+### 4. Expose n8n to the deployed backend (ngrok)
+
+The Render backend posts events to n8n, so n8n needs a public HTTPS address. A free ngrok account includes one static domain.
+
+1. Sign up at [ngrok.com](https://ngrok.com), install the **current** ngrok, and run `ngrok config add-authtoken <token>` with the token of the account that owns the domain.
+2. Dashboard → **Domains**: note your free static domain, e.g. `your-name.ngrok-free.dev`.
+3. With the n8n container publishing port 5678, run this from the repository root:
+   ```bash
+   ngrok http 5678 --url=https://your-name.ngrok-free.dev --traffic-policy-file=n8n/ngrok-policy.yml
+   ```
+   The [traffic policy](ngrok-policy.yml) makes only `POST /webhook/scriptai-events` public. Without it, the tunnel also publishes the n8n editor, login page and REST API (which holds your SMTP credential) to the whole internet. Check: opening `https://your-name.ngrok-free.dev/` should show **404**.
+4. On Render set `N8N_EVENTS_URL=https://your-name.ngrok-free.dev/webhook/scriptai-events` and `N8N_SHARED_SECRET` (same value as in n8n).
+5. Keep n8n and ngrok running while you want emails and reminders. `GET /api/ready` on the backend reports `n8n_automations: ok` when both values are set.
 
 ## Troubleshooting
 
@@ -65,5 +81,8 @@ In `backend/.env`, `N8N_EVENTS_URL` is the Events workflow's production webhook 
 | Events run ends at "Ignore forged event" | "Valid secret?" value ≠ `N8N_SHARED_SECRET` |
 | Workflow won't activate: path in use | Another active workflow uses the same webhook path |
 | Browser CORS error on `:5678` | Allowed Origins on the Receive node doesn't match the frontend origin exactly |
+| ngrok `unknown flag: --url` or `unknown version '3'` in `ngrok.yml` | ngrok is outdated (e.g. winget's 3.3.1). Install the current release from ngrok.com, then `ngrok update` keeps it current |
+| ngrok `ERR_NGROK_320` (domain reserved for another account) | The saved authtoken belongs to a different account: run `ngrok config add-authtoken` with the token of the account that owns the domain |
+| Emails stop when the laptop sleeps | n8n and ngrok must both be running; pending reminders are sent once they're back |
 
 Event payloads and the internal reminder endpoints: [docs/api.md](../docs/api.md).

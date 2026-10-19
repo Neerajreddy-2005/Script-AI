@@ -13,6 +13,7 @@ Each record gives the decision, why it was made, and what it costs.
   - **All email is sent by n8n**, which holds the SMTP or Gmail credentials, so FastAPI has no mail configuration.
 - **Why not keep the LLM call in n8n?** RAG, citations, and the validate → revise loop need state and tests that are much easier to maintain in Python. n8n is strongest at integrations and scheduling.
 - **Trade-off:** One more hop per generation (adds milliseconds). The user's JWT is forwarded through n8n. If n8n is down, the frontend can call FastAPI directly by leaving `VITE_N8N_WEBHOOK_URL` empty.
+- **Update (2026-10-19, deployment):** In production the frontend calls FastAPI directly. n8n runs on the developer's machine, so putting it in the request path would make generation depend on a laptop being online. n8n stays the email and automation hub, reachable by the Render backend through an ngrok static domain; the gateway workflow remains for local development.
 
 ## ADR-001b: The cleaner runs inside FastAPI (the separate clean_service was removed)
 

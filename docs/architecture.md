@@ -53,7 +53,7 @@ flowchart LR
 
 **Events:** FastAPI → n8n `/webhook/scriptai-events`, fire-and-forget with the `X-ScriptAI-Secret` header.
 
-Without n8n, the frontend can call FastAPI directly: leave `VITE_N8N_WEBHOOK_URL` empty. Generation works, but email features are off.
+Production leaves `VITE_N8N_WEBHOOK_URL` empty, so the frontend calls FastAPI directly. n8n (in Docker, exposed through an ngrok static domain) still receives events and sends every email. If n8n is down, generation keeps working; only email and reminder delivery pause.
 
 ## Request flow: generate a script
 

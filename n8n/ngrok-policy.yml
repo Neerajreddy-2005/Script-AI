@@ -1,0 +1,12 @@
+# ngrok traffic policy: expose only the one webhook the deployed backend calls.
+# Without it, the tunnel also publishes the n8n editor, login page and REST API to the internet.
+#   ngrok http 5678 --url=https://<your-domain>.ngrok-free.dev --traffic-policy-file=n8n/ngrok-policy.yml
+on_http_request:
+  - name: Only the Script-AI events webhook is public
+    expressions:
+      - "!(req.url.path == '/webhook/scriptai-events' && req.method == 'POST')"
+    actions:
+      - type: custom-response
+        config:
+          status_code: 404
+          body: Not found

@@ -3,8 +3,9 @@ from fastapi import APIRouter, BackgroundTasks, Depends, status
 from app.core.auth import CurrentUser, get_current_user
 from app.core.errors import AppError, BadRequestError, ServiceUnavailableError
 from app.core.logging import request_id_var
-from app.deps import get_event_publisher, get_generation_service
+from app.deps import get_email_limiter, get_event_publisher, get_generation_service
 from app.schemas.generation import EmailScriptRequest, GenerateRequest, GenerateResponse, QueuedResponse, ScriptData
+from app.services.email_limit import EmailRateLimiter
 from app.services.events import EventPublisher
 from app.services.generation import GenerationService
 
@@ -90,11 +91,13 @@ def generate_script_in_background(
 	user: CurrentUser = Depends(get_current_user),
 	service: GenerationService = Depends(get_generation_service),
 	events: EventPublisher = Depends(get_event_publisher),
+	limiter: EmailRateLimiter = Depends(get_email_limiter),
 ) -> QueuedResponse:
 	"""Accept the brief, return immediately, generate in the background, and email the finished
 	script (or the failure reason) to the user through n8n. The user can close the tab."""
 	email = _require_email_automation(user, events)
 	service.check_quota(user)  # fail fast instead of emailing a quota error later
+	limiter.consume(user.id)
 	request_id = request_id_var.get()
 	background.add_task(_background_job, service, events, user, req, request_id)
 	return QueuedResponse(request_id=request_id, email=email)
@@ -105,9 +108,11 @@ def email_script(
 	req: EmailScriptRequest,
 	user: CurrentUser = Depends(get_current_user),
 	events: EventPublisher = Depends(get_event_publisher),
+	limiter: EmailRateLimiter = Depends(get_email_limiter),
 ) -> QueuedResponse:
 	"""Email the script currently shown in the dashboard to the signed-in user's own address."""
 	email = _require_email_automation(user, events)
+	limiter.consume(user.id)
 	events.publish("script.email_requested", user, _email_payload(
 		req.script, req.platform, [s.model_dump() for s in req.sources], background=False,
 	))

@@ -83,7 +83,9 @@ async def lifespan(_: FastAPI):
 
 def create_app() -> FastAPI:
 	settings = get_settings()
-	app = FastAPI(title="Script-AI API", version="2.0.0", lifespan=lifespan)
+	# Interactive API docs are for development; production doesn't advertise its routes.
+	docs = {} if settings.app_env != "production" else {"docs_url": None, "redoc_url": None, "openapi_url": None}
+	app = FastAPI(title="Script-AI API", version="2.0.0", lifespan=lifespan, **docs)
 	app.add_middleware(
 		CORSMiddleware,
 		allow_origins=settings.cors_origins,
