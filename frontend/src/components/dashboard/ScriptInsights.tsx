@@ -23,7 +23,7 @@ const ScriptInsights = ({ metadata }: { metadata: GenerationMetadata }) => {
 
   return (
     <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <section className="rounded-lg border border-gray-100 p-4">
+      <section className="rounded-xl border border-line p-4">
         <h3 className="flex items-center gap-2 font-medium text-scriptai-black mb-2">
           {validation.passed ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-amber-600" />}
           Quality checks {validation.passed ? "passed" : "need attention"}
@@ -45,7 +45,7 @@ const ScriptInsights = ({ metadata }: { metadata: GenerationMetadata }) => {
         )}
       </section>
 
-      <section className="rounded-lg border border-gray-100 p-4">
+      <section className="rounded-xl border border-line p-4">
         <h3 className="flex items-center gap-2 font-medium text-scriptai-black mb-2">
           <BookOpen className="h-4 w-4 text-scriptai-blue" /> Sources
         </h3>
@@ -68,7 +68,7 @@ const ScriptInsights = ({ metadata }: { metadata: GenerationMetadata }) => {
         )}
       </section>
 
-      <section className="rounded-lg border border-gray-100 p-4 lg:col-span-2">
+      <section className="rounded-xl border border-line p-4 lg:col-span-2">
         <h3 className="font-medium text-scriptai-black mb-2">Workflow ({metadata.mode})</h3>
         <ol className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-scriptai-darkgray">
           {workflow.map((step, i) => (

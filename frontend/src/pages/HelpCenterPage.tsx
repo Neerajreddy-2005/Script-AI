@@ -1,187 +1,175 @@
+import { useMemo, useState } from "react";
+import { AudioLines, Mail, Rocket, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { Faq, Highlight, PageHeader, type FaqItem } from "@/components/marketing";
+import { cn } from "@/lib/utils";
 
-import { useEffect, useRef, useState } from 'react';
-import { Button } from "@/components/ui/button";
+const CATEGORIES: { id: string; label: string; icon: typeof Rocket; items: FaqItem[] }[] = [
+  {
+    id: "getting-started",
+    label: "Getting started",
+    icon: Rocket,
+    items: [
+      {
+        question: "How do I create my first script?",
+        answer: "Sign up, open the Dashboard, enter a topic, choose a platform, tone and length, then press Generate script.",
+      },
+      {
+        question: "Which platforms are supported?",
+        answer: "YouTube, TikTok, Instagram, LinkedIn, X (Twitter) and podcasts. Each one gets a structure and pacing that suits it.",
+      },
+      {
+        question: "What's the difference between standard and assisted mode?",
+        answer: "Standard writes the script in one pass and is fastest. Assisted also runs quality checks and revises the draft when a check fails.",
+      },
+    ],
+  },
+  {
+    id: "features",
+    label: "Features",
+    icon: Sparkles,
+    items: [
+      {
+        question: "How does voice generation work?",
+        answer:
+          "After generating a script, press Listen in the Voice panel. Your browser's built-in voices read it aloud. Choose a voice and adjust speed and pitch. Available voices depend on your browser and device.",
+      },
+      {
+        question: "How do I use my own documents?",
+        answer:
+          "Upload PDF, Markdown or text files in the Knowledge base panel, turn on 'Use knowledge base' and select the documents. Facts from them are cited as [S1], [S2] and so on.",
+      },
+      {
+        question: "Can I get scripts by email?",
+        answer: "Yes. Press 'Email me' on a script, or use 'Generate in background & email me' to receive it without waiting on the page.",
+      },
+      {
+        question: "How do reminders work?",
+        answer: "In the Reminders panel, pick a date and time. We'll email you when it's time to record or post.",
+      },
+    ],
+  },
+  {
+    id: "account",
+    label: "Account & data",
+    icon: ShieldCheck,
+    items: [
+      {
+        question: "I forgot my password. What do I do?",
+        answer: "On the login page, enter your email and click 'Forgot password?'. We'll send you a reset link.",
+      },
+      {
+        question: "Who can see my scripts and documents?",
+        answer: "Only you. Your data is isolated to your account.",
+      },
+      {
+        question: "How do I delete a document?",
+        answer: "Open the Knowledge base panel on the dashboard and click the delete icon next to the document.",
+      },
+    ],
+  },
+  {
+    id: "troubleshooting",
+    label: "Troubleshooting",
+    icon: AudioLines,
+    items: [
+      {
+        question: "The first request is slow. Is something wrong?",
+        answer: "If nobody has used the service for a while, the server takes up to a minute to wake up. Requests after that are fast.",
+      },
+      {
+        question: "I don't hear any voice.",
+        answer: "Check that your device isn't muted, then try another voice from the list. Some browsers load voices a few seconds after the page opens.",
+      },
+      {
+        question: "My email hasn't arrived.",
+        answer: "Check your spam folder. Emails usually arrive within a minute or two.",
+      },
+    ],
+  },
+];
 
 const HelpCenterPage = () => {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [activeCategory, setActiveCategory] = useState('getting-started');
-  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-fade-in');
-            entry.target.classList.remove('opacity-0');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 }
+  const [active, setActive] = useState(CATEGORIES[0].id);
+  const [query, setQuery] = useState("");
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return CATEGORIES.find((c) => c.id === active)?.items ?? [];
+    return CATEGORIES.flatMap((c) => c.items).filter((item) =>
+      `${item.question} ${typeof item.answer === "string" ? item.answer : ""}`.toLowerCase().includes(q),
     );
-
-    if (headerRef.current) {
-      observer.observe(headerRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
-  const faqCategories = {
-    'getting-started': [
-      {
-        id: 'gs1',
-        question: 'How do I create my first script?',
-        answer: 'To create your first script, navigate to the Dashboard. Enter your topic, select your platform and tone preferences, then click "Generate Script". Our AI will create a professional script based on your inputs.'
-      },
-      {
-        id: 'gs2',
-        question: 'What platforms does ScriptAI support?',
-        answer: 'ScriptAI supports script creation for various platforms including YouTube, TikTok, Instagram, podcasts, and more. You can select your target platform when creating a new script, and our AI will optimize the content accordingly.'
-      },
-      {
-        id: 'gs3',
-        question: 'How do I edit a generated script?',
-        answer: 'After a script is generated, you can edit it directly in our editor. Simply click on any section of the script to make changes. You can also use our AI tools to regenerate specific sections if needed.'
-      }
-    ],
-    'technical': [
-      {
-        id: 'tech1',
-        question: 'What browsers are supported?',
-        answer: 'ScriptAI works best on modern browsers like Chrome, Firefox, Safari, and Edge. We recommend keeping your browser updated to the latest version for optimal performance.'
-      },
-      {
-        id: 'tech2',
-        question: 'Is there a mobile app available?',
-        answer: 'Currently, ScriptAI is available as a web application optimized for both desktop and mobile browsers. A dedicated mobile app is in development and will be released soon.'
-      },
-      {
-        id: 'tech3',
-        question: 'How do I export my scripts?',
-        answer: 'You can export your scripts in various formats including TXT, DOCX, and PDF. Simply open your script and click the "Export" button in the top right corner to select your preferred format.'
-      }
-    ],
-    'features': [
-      {
-        id: 'feat1',
-        question: 'How does the voice output feature work?',
-        answer: 'The voice output feature converts your script to audio using advanced text-to-speech technology. To use this feature, open your script and click the "Generate Voice" button. You can choose from various voices and adjust settings like speed and tone.'
-      },
-      {
-        id: 'feat2',
-        question: 'Can I generate thumbnails for my content?',
-        answer: 'Yes, Premium subscribers can generate thumbnails using our AI image generation tool. Navigate to the "Thumbnails" tab in your script editor and follow the prompts to create custom thumbnails for your content.'
-      },
-      {
-        id: 'feat3',
-        question: 'What languages are supported?',
-        answer: 'Currently, ScriptAI supports English, Spanish, French, German, and Japanese. We are continuously working to add support for more languages based on user demand.'
-      }
-    ]
-  };
-
-  type CategoryKey = keyof typeof faqCategories;
-
-  const toggleQuestion = (id: string) => {
-    setExpandedQuestion(expandedQuestion === id ? null : id);
-  };
+  }, [active, query]);
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      {/* Header Section */}
-      <section 
-        ref={headerRef}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 opacity-0"
+    <div>
+      <PageHeader
+        eyebrow="Help center"
+        title={
+          <>
+            How can we <Highlight>help?</Highlight>
+          </>
+        }
+        subtitle="Search the answers below, or get in touch with our team."
       >
-        <div className="text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-scriptai-black mb-6">
-            How Can We <span className="text-scriptai-blue">Help?</span>
-          </h1>
-          <p className="text-xl text-scriptai-darkgray max-w-3xl mx-auto mb-8">
-            Find answers to common questions or contact our support team
-          </p>
-          <div className="max-w-2xl mx-auto flex rounded-lg overflow-hidden shadow-sm">
-            <input 
-              type="text" 
-              placeholder="Search for answers..." 
-              className="flex-grow px-4 py-3 focus:outline-none"
-            />
-            <Button className="bg-scriptai-blue hover:bg-blue-600 text-white rounded-none px-6">
-              Search
-            </Button>
-          </div>
+        <div className="relative mx-auto mt-10 max-w-xl">
+          <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search for answers…"
+            aria-label="Search help articles"
+            className="input-field h-14 rounded-full pl-14 text-base shadow-card"
+          />
         </div>
-      </section>
+      </PageHeader>
 
-      {/* FAQ Categories */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          <button 
-            onClick={() => setActiveCategory('getting-started')}
-            className={`px-5 py-2 rounded-full font-medium transition-all ${activeCategory === 'getting-started' ? 'bg-scriptai-blue text-white' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
-          >
-            Getting Started
-          </button>
-          <button 
-            onClick={() => setActiveCategory('technical')}
-            className={`px-5 py-2 rounded-full font-medium transition-all ${activeCategory === 'technical' ? 'bg-scriptai-blue text-white' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
-          >
-            Technical
-          </button>
-          <button 
-            onClick={() => setActiveCategory('features')}
-            className={`px-5 py-2 rounded-full font-medium transition-all ${activeCategory === 'features' ? 'bg-scriptai-blue text-white' : 'bg-gray-100 text-scriptai-darkgray hover:bg-gray-200'}`}
-          >
-            Features
-          </button>
-        </div>
-        
-        <div className="space-y-4">
-          {faqCategories[activeCategory as CategoryKey].map((faq) => (
-            <div 
-              key={faq.id}
-              className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-300"
-            >
-              <button
-                onClick={() => toggleQuestion(faq.id)}
-                className="w-full text-left px-6 py-4 flex justify-between items-center bg-white hover:bg-gray-50"
-              >
-                <span className="font-medium text-scriptai-black">{faq.question}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className={`h-5 w-5 text-scriptai-blue transition-transform ${expandedQuestion === faq.id ? 'transform rotate-180' : ''}`}
-                  viewBox="0 0 20 20" 
-                  fill="currentColor"
-                >
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-              {expandedQuestion === faq.id && (
-                <div className="px-6 py-4 bg-gray-50 animate-fade-in">
-                  <p className="text-scriptai-darkgray">{faq.answer}</p>
-                </div>
+      <section className="container-page grid gap-10 pb-24 lg:grid-cols-[260px_1fr]">
+        <div className="flex gap-2 overflow-x-auto lg:flex-col">
+          {CATEGORIES.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => {
+                setActive(id);
+                setQuery("");
+              }}
+              aria-pressed={!query && active === id}
+              className={cn(
+                "flex shrink-0 items-center gap-3 rounded-2xl px-4 py-3 text-left font-semibold transition-colors",
+                !query && active === id ? "bg-accent-soft text-accent-text" : "text-muted hover:bg-surface hover:text-text",
               )}
-            </div>
+            >
+              <Icon className="h-5 w-5" /> {label}
+            </button>
           ))}
         </div>
+
+        <div>
+          {query && (
+            <p className="mb-4 text-sm text-muted">
+              {results.length} result{results.length === 1 ? "" : "s"} for "{query}"
+            </p>
+          )}
+          {results.length ? (
+            <Faq items={results} />
+          ) : (
+            <div className="card p-10 text-center text-muted">No answers match your search. Try different words, or contact us below.</div>
+          )}
+        </div>
       </section>
 
-      {/* Contact Support */}
-      <section className="bg-scriptai-lightblue py-16 mt-8">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-scriptai-black mb-4">
-            Still Have Questions?
-          </h2>
-          <p className="text-lg text-scriptai-darkgray mb-8 max-w-3xl mx-auto">
-            Our support team is here to help. Reach out to us and we'll get back to you as soon as possible.
-          </p>
-          <Button className="bg-scriptai-blue hover:bg-blue-600 text-white px-8 py-3 text-lg font-medium">
-            Contact Support
-          </Button>
+      <section className="container-page pb-24">
+        <div className="glass-strong flex flex-col items-center gap-6 rounded-4xl p-10 text-center sm:flex-row sm:text-left">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-white">
+            <Mail className="h-6 w-6" />
+          </span>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-text">Still have questions?</h2>
+            <p className="mt-1 text-muted">Use the chat button in the corner, or email us and we'll reply as soon as we can.</p>
+          </div>
+          <a href="mailto:support@scriptai.com" className="btn-primary">
+            Email support
+          </a>
         </div>
       </section>
     </div>
