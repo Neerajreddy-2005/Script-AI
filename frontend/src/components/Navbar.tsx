@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   // Check if user is on dashboard page
   const isDashboard = location.pathname.includes('/dashboard');
@@ -45,6 +53,10 @@ const Navbar = () => {
             </Link>
             <div className="flex items-center space-x-4">
               <span className="hidden sm:block font-medium">Dashboard</span>
+              {user?.email && <span className="hidden md:block text-sm text-scriptai-darkgray">{user.email}</span>}
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                Log out
+              </Button>
             </div>
           </div>
         </div>
@@ -68,6 +80,15 @@ const Navbar = () => {
           </div>
           
           <div className="hidden md:flex items-center space-x-4">
+            {user ? (
+              <button onClick={handleSignOut} className="font-medium text-scriptai-darkgray hover:text-scriptai-black">
+                Log out
+              </button>
+            ) : (
+              <Link to="/login" className="font-medium text-scriptai-darkgray hover:text-scriptai-black">
+                Log in
+              </Link>
+            )}
             <Link to="/dashboard">
               <Button className="bg-scriptai-blue hover:bg-blue-600 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-200">
                 Get Started
@@ -105,6 +126,15 @@ const Navbar = () => {
           <Link to="/features" className="block font-medium text-scriptai-darkgray hover:text-scriptai-black py-2">
             Features
           </Link>
+          {user ? (
+            <button onClick={handleSignOut} className="block font-medium text-scriptai-darkgray hover:text-scriptai-black py-2">
+              Log out
+            </button>
+          ) : (
+            <Link to="/login" className="block font-medium text-scriptai-darkgray hover:text-scriptai-black py-2">
+              Log in
+            </Link>
+          )}
           <div className="pt-2">
             <Link to="/dashboard" className="btn-primary inline-block text-center w-full">
               Get Started
