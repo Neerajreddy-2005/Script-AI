@@ -16,9 +16,44 @@ ScriptAI turns a one-line idea into a platform-ready script for YouTube, TikTok,
 - **Full-stack AI product, live in production.** React + TypeScript frontend (Netlify), FastAPI backend in Docker (Render), Supabase Postgres + pgvector + Auth, n8n automations.
 - **Retrieval-augmented generation (RAG).** Hybrid search (pgvector similarity + Postgres full-text, merged with reciprocal rank fusion). On a labeled 20-brief evaluation set with real Gemini embeddings: **Hit@5 100%, MRR 1.00**. The same evaluation showed unrelated topics retrieving documents, so the relevance cutoff was retuned, and all 3 unrelated test topics now return no sources.
 - **Self-checking AI workflow.** Assisted mode drafts, validates (length, keywords, CTA, citations) and revises within a fixed budget. In a live evaluation of 80 runs this raised the validation pass rate from **50% to 98%**.
-- **151 automated tests** (unit + integration, plus Postgres tests in CI), an offline and live evaluation harness, and a 3-job CI pipeline that gates every pull request.
-- **Measured frontend performance work:** main JS bundle **−13%** (gzip), largest paint **−10%**, Lighthouse accessibility **94 → 100**, desktop performance **97**.
+- **151 automated tests** (unit + integration, plus Postgres tests in CI), an offline and live evaluation harness, and a 3-job CI pipeline that runs on every pull request.
+- **Measured frontend performance work:** main JS bundle **−13%** (gzip), Lighthouse accessibility **94 → 100**, largest paint **−5%**.
 - **Security by default.** JWT verification, per-user isolation in every query **and** Postgres row-level security, secrets never in the browser, log redaction.
+
+## Evidence: check these claims yourself
+
+Numbers were last checked on 2026-11-05. Each one links to its report, code or a command you can run.
+
+| Claim | Result | Where to see it | How it was measured |
+|---|---|---|---|
+| Retrieval quality | **Hit@5 100%, MRR 1.00** | [Live report at cutoff 0.6](backend/eval/results/live_retrieval_cutoff_0.6.md) | 20 labeled briefs over 6 documents, real Gemini embeddings |
+| Unrelated topics return no sources | **3/3** at cutoff 0.6 (0/3 at the earlier 0.25) | [Both results compared](docs/evaluation.md#live-results) | The live evaluation exposed the problem, and [`render.yaml`](render.yaml) now sets 0.6 |
+| Validate-and-revise step | Validation pass rate **50% → 98%** (20/40 → 39/40) | [Live report](backend/eval/results/live_report.md), [`agent_workflow.py`](backend/app/services/agent_workflow.py) | 80 runs with `gpt-4o-mini`. The checks cover length, keywords, CTA and citations, not writing quality |
+| Prompt injection and conflicting sources | **0** forbidden phrases in 80 runs | [Live report](backend/eval/results/live_report.md), [`test_knowledge_api.py`](backend/tests/integration/test_knowledge_api.py) | A forbidden-phrase check on a small set, so a useful signal rather than a guarantee |
+| Automated tests | **151 passed**, 5 skipped locally | [`backend/tests`](backend/tests) | The 5 skipped tests need Postgres and run in CI |
+| CI | 3 jobs, **11 of 11 runs passed** | [GitHub Actions](https://github.com/Neerajreddy-2005/Script-AI/actions), [`ci.yml`](.github/workflows/ci.yml) | Runs on every PR and on `main`. Merges aren't blocked automatically |
+| Smaller JS bundle | **120.6 → 105.2 KB gzip (−13%)** | Commit `557eea4` swaps `supabase-js` for `auth-js` | Rebuilt `c301354` and `main` with `vite build` |
+| Accessibility | **Lighthouse 94 → 100** | Commands below | Lighthouse 12.8.2, mobile, median of 3 runs, local production build |
+| Page speed | LCP **2.75 → 2.61 s (−5%)**, mobile performance 88 → 89 | Commands below | Same method. These timings vary by machine |
+| Security review | **4 findings fixed** | [PR #3](https://github.com/Neerajreddy-2005/Script-AI/pull/3), [production issues](#production-issues-and-how-i-resolved-them) | Source-level review, not a professional penetration test |
+| Running product | Live site and health check | [Website](https://scripai.netlify.app), [`/api/ready`](https://script-ai-api.onrender.com/api/ready) | The first request can take about 50 seconds on Render's free plan |
+
+**Reproduce it**
+
+```bash
+cd backend
+pytest                                   # tests: no API keys or network needed
+python -m eval.run_eval                  # offline evaluation: free and deterministic
+python -m eval.run_eval --live           # live evaluation: needs LLM and embedding keys in .env, costs about $0.06
+```
+
+```bash
+# Frontend: run at commit c301354 for "before" and on main for "after"
+cd frontend && npm ci && npx vite build && npx vite preview --port 4801
+npx lighthouse@12 http://localhost:4801/ --form-factor=mobile --only-categories=performance,accessibility,best-practices,seo
+```
+
+**What these numbers don't show:** the evaluation set is small and hand-made, the cutoff was tuned on that same set, and the live evaluation uses an in-memory store rather than pgvector. pgvector search has its own [database tests](backend/tests/integration/test_postgres_repository.py), which run in CI.
 
 ## Features
 
@@ -31,7 +66,7 @@ ScriptAI turns a one-line idea into a platform-ready script for YouTube, TikTok,
 | **Email and background runs** | "Email me" sends any script; "Generate in background" emails the result so you can close the tab |
 | **Reminders** | Schedule an email reminder to record or post |
 | **Accounts** | Sign up, log in, password reset (Supabase Auth); daily quotas by tier |
-| **Modern UI** | Responsive design with clear "liquid glass" surfaces, WCAG AA colour contrast, reduced-motion and reduced-transparency support |
+| **Modern UI** | Responsive design with clear "liquid glass" surfaces, reduced-motion and reduced-transparency support |
 
 ## Tech stack
 
@@ -43,7 +78,7 @@ ScriptAI turns a one-line idea into a platform-ready script for YouTube, TikTok,
 | Data and auth | Supabase Postgres + pgvector, full-text search, row-level security, Supabase Auth (JWT) |
 | Automation | n8n (Docker) for emails and reminders, exposed with an ngrok static domain |
 | Hosting | Netlify (frontend), Render (backend, Blueprint), Supabase (database) |
-| Quality | pytest, ruff, ESLint, `tsc`, GitHub Actions, Lighthouse, WCAG contrast checker |
+| Quality | pytest, ruff, ESLint, `tsc`, GitHub Actions, Lighthouse |
 
 ## Architecture (production)
 
@@ -80,7 +115,7 @@ Gathered and fixed before building 2.0:
 
 - Architecture and trade-offs recorded as ADRs ([docs/decisions.md](docs/decisions.md)): e.g. moving output cleaning into FastAPI (one less service), hybrid retrieval over pure vector search, bounded agent loop instead of open-ended tools.
 - Database schema with indexes and row-level security ([backend/migrations/001_init.sql](backend/migrations/001_init.sql)).
-- UI design system as tokens (colour roles, type, radius, shadows), every text/background pair checked for WCAG AA.
+- UI design system as tokens (colour roles, type, radius, shadows).
 
 ### 3. Development
 
@@ -102,7 +137,7 @@ Gathered and fixed before building 2.0:
 | AI evaluation | 20 labeled briefs (supported, conflicting, prompt-injection, no-context): retrieval Hit@5 / MRR, validation pass rate, citation correctness | `backend/eval`: offline in CI, live on demand |
 | Static checks | ruff, ESLint, TypeScript `--noEmit` | CI |
 | Build and container | Frontend production build; Docker image must start and pass `/api/health` and `/api/ready` | CI |
-| Performance and accessibility | Lighthouse (3 runs, median), WCAG contrast checker | Manual, before release |
+| Performance and accessibility | Lighthouse (3 runs, median) | Manual, before release |
 | Production smoke test | `/api/ready` all `ok`; log in, generate, upload a document and generate with sources, email, 2-minute reminder | Live site |
 
 Result: **151 passed** locally (5 Postgres tests skip without a database and run in CI); CI green on every merged PR.
@@ -115,7 +150,7 @@ Result: **151 passed** locally (5 Postgres tests skip without a database and run
 | Backend | Render (free, Docker) | Blueprint in `render.yaml`; secrets entered in the dashboard; health check `/api/health` |
 | Database + Auth | Supabase | `001_init.sql`; Site URL and redirect URLs set to the Netlify domain |
 | Automations | n8n in Docker on my machine | Public HTTPS via ngrok static domain; requests authenticated with a shared secret |
-| Gate | GitHub Actions | Backend, frontend and Docker jobs must pass before merge |
+| CI | GitHub Actions | Backend, frontend and Docker jobs run on every PR and on `main` |
 
 Release flow: feature branch → PR → CI + Netlify deploy preview → merge → automatic production deploy.
 
@@ -146,11 +181,10 @@ Release flow: feature branch → PR → CI + Netlify deploy preview → merge �
 | Retrieval Hit@5 / MRR (offline) | 94% / 0.94 | Keyword-based test embeddings, runs in CI as a regression check |
 | Automated tests | **151 passing** (+5 Postgres tests in CI) | `pytest` |
 | Security review | **4 confirmed issues fixed** (3 medium, 1 low), 0 open | Source-first review with Cloudflare's security-audit method (below) |
-| Main JS bundle (gzip) | **120.7 KB → 105.2 KB (−13%)** | Vite build output |
-| Largest Contentful Paint (mobile) | **2.91 s → 2.61 s (−10%)** | Lighthouse 12, mobile preset, median of 3, local production build |
-| Lighthouse (mobile / desktop) | Performance **92 / 97**, Accessibility **100**, Best Practices **100**, SEO **100** | Same method |
+| Main JS bundle (gzip) | **120.6 KB → 105.2 KB (−13%)** | Vite build output, re-measured 2026-11-05 |
+| Largest Contentful Paint (mobile) | **2.75 s → 2.61 s (−5%)** | Lighthouse 12.8.2, mobile preset, median of 3, local production build, re-measured 2026-11-05 |
+| Lighthouse (mobile) | Performance **89**, Accessibility **100**, Best Practices **100**, SEO **100** | Same method |
 | Cumulative Layout Shift | **0** | Lighthouse |
-| Colour contrast | **17/17** token pairs pass WCAG AA | `contrast.py` |
 | Warm API latency | **~300 ms** for `/api/health` (India → Render) | 6 requests from my machine |
 
 The offline evaluation uses a deterministic fake LLM and hashed embeddings, so it measures the pipeline (retrieval, citations, validation), not writing quality. The live evaluation uses real providers with an in-memory store, so it doesn't exercise pgvector itself, and the validation checks cover length, keywords, CTA and citations rather than writing quality. See [docs/evaluation.md](docs/evaluation.md).
