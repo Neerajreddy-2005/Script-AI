@@ -36,6 +36,9 @@ services:
         value: "true"
       - key: EMBEDDING_API_KEY
         sync: false
+      # Relevance cutoff for gemini-embedding-001; see docs/evaluation.md
+      - key: RAG_MIN_SIMILARITY
+        value: "0.6"
       # Supabase
       - key: DATABASE_URL
         sync: false

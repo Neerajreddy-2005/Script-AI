@@ -14,9 +14,9 @@ ScriptAI turns a one-line idea into a platform-ready script for YouTube, TikTok,
 ## Highlights
 
 - **Full-stack AI product, live in production.** React + TypeScript frontend (Netlify), FastAPI backend in Docker (Render), Supabase Postgres + pgvector + Auth, n8n automations.
-- **Retrieval-augmented generation (RAG).** Hybrid search (pgvector similarity + Postgres full-text, merged with reciprocal rank fusion). On a labeled 20-brief evaluation set: **Hit@5 94%, MRR 0.94, 100% correct "no sources" on unrelated topics**.
-- **Self-checking AI workflow.** Assisted mode drafts, validates (length, keywords, CTA, citations) and revises within a fixed budget.
-- **151 automated tests** (unit + integration, plus Postgres tests in CI), an offline evaluation harness, and a 3-job CI pipeline that gates every pull request.
+- **Retrieval-augmented generation (RAG).** Hybrid search (pgvector similarity + Postgres full-text, merged with reciprocal rank fusion). On a labeled 20-brief evaluation set with real Gemini embeddings: **Hit@5 100%, MRR 1.00**. The same evaluation showed unrelated topics retrieving documents, so the relevance cutoff was retuned, and all 3 unrelated test topics now return no sources.
+- **Self-checking AI workflow.** Assisted mode drafts, validates (length, keywords, CTA, citations) and revises within a fixed budget. In a live evaluation of 80 runs this raised the validation pass rate from **50% to 98%**.
+- **151 automated tests** (unit + integration, plus Postgres tests in CI), an offline and live evaluation harness, and a 3-job CI pipeline that gates every pull request.
 - **Measured frontend performance work:** main JS bundle **−13%** (gzip), largest paint **−10%**, Lighthouse accessibility **94 → 100**, desktop performance **97**.
 - **Security by default.** JWT verification, per-user isolation in every query **and** Postgres row-level security, secrets never in the browser, log redaction.
 
@@ -99,7 +99,7 @@ Gathered and fixed before building 2.0:
 | Unit | JWT auth and tiers, log redaction, LLM client (retries, timeouts, usage, cost), embeddings, production-config safety, agent workflow, validator and prompts, ingestion and chunking, output cleaner | `backend/tests/unit` |
 | Integration | Generation, knowledge base (incl. cross-user isolation), email and reminders, n8n events, quotas, evaluation regression, all through the real API with fake providers | `backend/tests/integration` |
 | Database | Postgres + pgvector repository tests against a real database | CI service container |
-| AI evaluation | 20 labeled briefs (supported, conflicting, prompt-injection, no-context): retrieval Hit@5 / MRR, validation pass rate, citation correctness | `backend/eval`, run in CI |
+| AI evaluation | 20 labeled briefs (supported, conflicting, prompt-injection, no-context): retrieval Hit@5 / MRR, validation pass rate, citation correctness | `backend/eval`: offline in CI, live on demand |
 | Static checks | ruff, ESLint, TypeScript `--noEmit` | CI |
 | Build and container | Frontend production build; Docker image must start and pass `/api/health` and `/api/ready` | CI |
 | Performance and accessibility | Lighthouse (3 runs, median), WCAG contrast checker | Manual, before release |
@@ -139,9 +139,11 @@ Release flow: feature branch → PR → CI + Netlify deploy preview → merge �
 
 | Metric | Value | How measured |
 |---|---|---|
-| Retrieval Hit@5 / MRR | **94% / 0.94** | Offline evaluation, 20 labeled briefs (`python -m eval.run_eval`), runs in CI |
-| No-context accuracy | **100%** | Unrelated briefs correctly return no sources |
-| Validation pass rate | **100%** across 4 configurations | Same evaluation, offline mode |
+| Retrieval Hit@5 / MRR (live) | **100% / 1.00** | Real Gemini embeddings, 20 labeled briefs (`python -m eval.run_eval --live`) |
+| No-context accuracy (live) | **3/3** at `RAG_MIN_SIMILARITY=0.6` (0/3 at the earlier 0.25) | Unrelated briefs return no sources |
+| Validation pass rate (live) | **50% standard, 98% assisted** (20/40, 39/40) | 80 runs with `gpt-4o-mini` |
+| Forbidden phrases (live) | **0** in 80 runs | Includes prompt-injection and conflicting-source briefs |
+| Retrieval Hit@5 / MRR (offline) | 94% / 0.94 | Keyword-based test embeddings, runs in CI as a regression check |
 | Automated tests | **151 passing** (+5 Postgres tests in CI) | `pytest` |
 | Security review | **4 confirmed issues fixed** (3 medium, 1 low), 0 open | Source-first review with Cloudflare's security-audit method (below) |
 | Main JS bundle (gzip) | **120.7 KB → 105.2 KB (−13%)** | Vite build output |
@@ -151,7 +153,7 @@ Release flow: feature branch → PR → CI + Netlify deploy preview → merge �
 | Colour contrast | **17/17** token pairs pass WCAG AA | `contrast.py` |
 | Warm API latency | **~300 ms** for `/api/health` (India → Render) | 6 requests from my machine |
 
-The offline evaluation uses a deterministic fake LLM and hashed embeddings, so it measures the pipeline (retrieval, citations, validation), not writing quality. See [docs/evaluation.md](docs/evaluation.md).
+The offline evaluation uses a deterministic fake LLM and hashed embeddings, so it measures the pipeline (retrieval, citations, validation), not writing quality. The live evaluation uses real providers with an in-memory store, so it doesn't exercise pgvector itself, and the validation checks cover length, keywords, CTA and citations rather than writing quality. See [docs/evaluation.md](docs/evaluation.md).
 
 ---
 
@@ -248,7 +250,7 @@ npm run lint && npx tsc -p tsconfig.app.json --noEmit && npm run build
 
 ## Limitations
 
-- The evaluation set is small (20 hand-labeled briefs): good for regression testing, not a benchmark.
+- The evaluation set is small (20 hand-labeled briefs over 6 documents): good for regression testing, not a benchmark. The relevance cutoff was chosen on this same set.
 - Voice generation uses the browser's built-in voices, so available voices vary by device and audio can't be downloaded.
 - Emails and reminders depend on the n8n container and ngrok tunnel running on my machine.
 - No server-side script history (by design, for privacy) and no OCR for scanned PDFs.

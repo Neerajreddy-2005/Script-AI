@@ -31,6 +31,8 @@ backend/.env.*
 backend/eval/results/*
 !backend/eval/results/.gitkeep
 !backend/eval/results/baseline_report.md
+!backend/eval/results/live_report.md
+!backend/eval/results/live_retrieval_cutoff_0.6.md
 
 # Python / Backend
 __pycache__/
