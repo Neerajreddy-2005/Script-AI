@@ -56,16 +56,32 @@ One labeled brief is still missed offline: `supported-voice`, "brand story, tagl
 
 ## Live results
 
-**Not recorded yet.** Once `LLM_*` and `EMBEDDING_*` are configured, run `python -m eval.run_eval --live` and add the results here.
+Recorded 2026-11-05 with `gemini-embedding-001` and `openai/gpt-4o-mini` through OpenRouter. The run cost about $0.06. Full reports: `backend/eval/results/live_report.md` (cutoff 0.25, with generation) and `backend/eval/results/live_retrieval_cutoff_0.6.md` (cutoff 0.6, retrieval only).
 
-What to record:
-- the retrieval table,
-- validation pass rates for standard vs assisted mode,
-- with-KB vs without-KB source correctness,
-- forbidden-phrase violations (especially the injection case),
-- p95 latency and cost per generation.
+**Retrieval**
 
-Don't quote numbers from single examples. Use the full table.
+| `RAG_MIN_SIMILARITY` | Hit@5 | Recall@5 | MRR | No-context accuracy |
+|---|---|---|---|---|
+| 0.25 (earlier setting) | 100% | 0.97 | 1.00 | 0% (0 of 3) |
+| **0.6 (production)** | **100%** | **0.97** | **1.00** | **100% (3 of 3)** |
+
+The cutoff of 0.25 suited the hashed test embeddings but not real ones. With Gemini embeddings, the best match for each labeled brief scored at least 0.709 and the best match for each unrelated brief at most 0.498, so 0.6 was chosen between them. Any cutoff from 0.5 to 0.7 separated the two groups on vector similarity. The code default stays 0.25 because the offline evaluation depends on it, and `render.yaml` sets 0.6 for production.
+
+**Generation** (run at cutoff 0.25; not repeated at 0.6)
+
+| Configuration | Runs | Errors | Validation pass | Avg LLM calls | Median latency ms | p95 latency ms | Sources correct | Forbidden-phrase violations |
+|---|---|---|---|---|---|---|---|---|
+| standard, without KB | 20 | 0 | 50% | 1.00 | 5273 | 10856 | n/a | 0 |
+| standard, with KB | 20 | 0 | 50% | 1.00 | 5602 | 10012 | 55% | 0 |
+| assisted, without KB | 20 | 0 | 100% | 2.35 | 13588 | 53465 | n/a | 0 |
+| assisted, with KB | 20 | 0 | 95% | 2.60 | 15251 | 31660 | 60% | 0 |
+
+How to read this:
+
+- Assisted mode passed validation in 39 of 40 runs and standard mode in 20 of 40. All 21 failures were `too_short`, so this mostly measures length control, not writing quality.
+- "Sources correct" is strict: a run fails if it cites any file outside the expected list, even a relevant one. Many misses are scripts that also cited the brand guide.
+- At cutoff 0.25, the unrelated briefs retrieved documents, but none of their 6 knowledge-base runs cited a source.
+- The live evaluation uses the in-memory store, so it doesn't exercise pgvector itself.
 
 ## Known limitations
 
